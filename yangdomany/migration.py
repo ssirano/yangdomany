@@ -16,8 +16,8 @@ print("삭제 완료")
 
 # Shows 데이터
 shows = [
-    {"_id": 1, "title": "웰컴투동막골", "category": "연극", "venue": "충무아트센터", "poster": "/static/images/posters/웰컴투동막골.jpg", "popularity": 95, "actors": ["박정복", "정원조", "고명빈", "이헤미"]},
-    {"_id": 2, "title": "광염소나타", "category": "연극", "venue": "예술의전당", "poster": "/static/images/posters/광염소나타.jpg", "popularity": 88, "actors": ["곽동연", "아재군", "정휘"]},
+    {"_id": 1, "title": "웰컴투동막골", "category": "연극", "venue": "충무아트센터", "poster": "/static/images/posters/웰컴투동막골.jpg", "popularity": 95, "actors": ["박정복", "정원조", "고영빈", "이혜미"]},
+    {"_id": 2, "title": "광염소나타", "category": "연극", "venue": "예술의전당", "poster": "/static/images/posters/광염소나타.jpg", "popularity": 88, "actors": ["곽동연", "이재균", "정휘"]},
     {"_id": 3, "title": "레미제라블", "category": "뮤지컬", "venue": "블루스퀘어", "poster": "/static/images/posters/레미제라블.jpg", "popularity": 92, "actors": ["민우혁", "카이", "린아"]},
     {"_id": 4, "title": "시카고", "category": "뮤지컬", "venue": "샤롯데씨어터", "poster": "/static/images/posters/시카고.jpg", "popularity": 85, "actors": ["아이비", "최정원", "신영숙"]},
     {"_id": 5, "title": "햄릿", "category": "연극", "venue": "LG아트센터", "poster": "/static/images/posters/햄릿.jpg", "popularity": 78, "actors": ["김현진", "이광수"]},
@@ -32,10 +32,10 @@ print(f"Shows {len(shows)}개 삽입 완료")
 show_casts = [
     {"show_id": 1, "actor": "박정복", "role": "표현철"},
     {"show_id": 1, "actor": "정원조", "role": "표현철"},
-    {"show_id": 1, "actor": "고명빈", "role": "리수화"},
-    {"show_id": 1, "actor": "이헤미", "role": "여일"},
+    {"show_id": 1, "actor": "고영빈", "role": "리수화"},
+    {"show_id": 1, "actor": "이혜미", "role": "여일"},
     {"show_id": 2, "actor": "곽동연", "role": "백남준"},
-    {"show_id": 2, "actor": "아재군", "role": "백남준"},
+    {"show_id": 2, "actor": "이재균", "role": "백남준"},
     {"show_id": 2, "actor": "정휘", "role": "선배"},
     {"show_id": 3, "actor": "민우혁", "role": "장발장"},
     {"show_id": 3, "actor": "카이", "role": "자베르"},
@@ -53,12 +53,12 @@ print(f"Show Casts {len(show_casts)}개 삽입 완료")
 actors = [
     {"name": "박정복", "count": 1250, "image": "/static/images/actors/박정복.jpg"},
     {"name": "정원조", "count": 1180, "image": "/static/images/actors/정원조.jpg"},
-    {"name": "고명빈", "count": 1120, "image": "/static/images/actors/고명빈.jpg"},
-    {"name": "아재군", "count": 980, "image": "/static/images/actors/아재군.jpg"},
+    {"name": "고영빈", "count": 1120, "image": "/static/images/actors/고영빈.jpg"},
+    {"name": "이재균", "count": 980, "image": "/static/images/actors/이재균.jpg"},
     {"name": "곽동연", "count": 890, "image": "/static/images/actors/곽동연.jpg"},
     {"name": "정휘", "count": 850, "image": "/static/images/actors/정휘.jpg"},
     {"name": "김현진", "count": 820, "image": "/static/images/actors/김현진.jpg"},
-    {"name": "이헤미", "count": 780, "image": "/static/images/actors/이헤미.jpg"},
+    {"name": "이혜미", "count": 780, "image": "/static/images/actors/이혜미.jpg"},
 ]
 
 print("Actors 데이터 삽입 중...")
@@ -82,11 +82,11 @@ print(f"Tickets {len(tickets)}개 삽입 완료")
 polaroids = [
     {"_id": 1, "actor": "박정복", "show": "웰컴투동막골", "type": "교환", "want": "정원조", "description": "박정복 11/22 폴라로이드 정원조와 교환 원합니다", "image": "/static/images/polaroids/박정복_1.jpg", "seller": "user001", "status": "거래중", "created_at": datetime(2024, 11, 15)},
     {"_id": 2, "actor": "정원조", "show": "웰컴투동막골", "type": "양도", "want": "", "description": "정원조 11/25 폴라로이드 양도합니다 2만원", "image": "/static/images/polaroids/정원조_1.jpg", "seller": "user002", "status": "거래중", "created_at": datetime(2024, 11, 16)},
-    {"_id": 3, "actor": "아재군", "show": "광염소나타", "type": "교환", "want": "곽동연", "description": "아재군 폴라로이드 곽동연이랑 교환해요", "image": "/static/images/polaroids/아재균_1.jpg", "seller": "user003", "status": "거래중", "created_at": datetime(2024, 11, 16)},
-    {"_id": 4, "actor": "고명빈", "show": "웰컴투동막골", "type": "양도", "want": "", "description": "고명빈 11/26 폴라로이드 양도 3만원", "image": "/static/images/polaroids/고명빈_1.jpg", "seller": "user004", "status": "거래중", "created_at": datetime(2024, 11, 17)},
-    {"_id": 5, "actor": "김현진", "show": "햄릿", "type": "교환", "want": "이헤미", "description": "김현진 폴라 이헤미와 교환합니다", "image": "/static/images/polaroids/김현진_1.jpg", "seller": "user005", "status": "거래중", "created_at": datetime(2024, 11, 17)},
+    {"_id": 3, "actor": "이재균", "show": "광염소나타", "type": "교환", "want": "곽동연", "description": "이재균 폴라로이드 곽동연이랑 교환해요", "image": "/static/images/polaroids/아재균_1.jpg", "seller": "user003", "status": "거래중", "created_at": datetime(2024, 11, 16)},
+    {"_id": 4, "actor": "고영빈", "show": "웰컴투동막골", "type": "양도", "want": "", "description": "고영빈 11/26 폴라로이드 양도 3만원", "image": "/static/images/polaroids/고영빈_1.jpg", "seller": "user004", "status": "거래중", "created_at": datetime(2024, 11, 17)},
+    {"_id": 5, "actor": "김현진", "show": "햄릿", "type": "교환", "want": "이혜미", "description": "김현진 폴라 이혜미와 교환합니다", "image": "/static/images/polaroids/김현진_1.jpg", "seller": "user005", "status": "거래중", "created_at": datetime(2024, 11, 17)},
     {"_id": 6, "actor": "정휘", "show": "레미제라블", "type": "양도", "want": "", "description": "정휘 폴라로이드 양도 2.5만원에 넘겨요", "image": "/static/images/polaroids/정휘_1.jpg", "seller": "user006", "status": "거래중", "created_at": datetime(2024, 11, 17)},
-    {"_id": 7, "actor": "곽동연", "show": "광염소나타", "type": "교환", "want": "아재군", "description": "곽동연 폴라 아재군이랑 교환 원합니다", "image": "/static/images/polaroids/곽동연_1.jpg", "seller": "user007", "status": "거래중", "created_at": datetime(2024, 11, 18)},
+    {"_id": 7, "actor": "곽동연", "show": "광염소나타", "type": "교환", "want": "이재균", "description": "곽동연 폴라 이재균이랑 교환 원합니다", "image": "/static/images/polaroids/곽동연_1.jpg", "seller": "user007", "status": "거래중", "created_at": datetime(2024, 11, 18)},
     {"_id": 8, "actor": "박정복", "show": "웰컴투동막골", "type": "양도", "want": "", "description": "박정복 11/30 폴라 양도합니다", "image": "/static/images/polaroids/박정복_2.jpg", "seller": "user008", "status": "거래중", "created_at": datetime(2024, 11, 18)},
 ]
 
