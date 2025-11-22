@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지 - 공연 양도</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="/">공연 양도</a></h1>
+            <div class="header-right">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="배우/작품명 검색">
+                    <button onclick="handleSearch()">검색</button>
+                </div>
+                <div class="auth-buttons">
+                    <a href="/login" class="login-btn">로그인</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <a href="/">메인</a>
+            <a href="/transfer">양도하기</a>
+            <a href="/polaroid">폴라로이드</a>
+            <a href="/mypage" class="active">마이페이지</a>
+        </div>
+    </nav>
+
+    <main class="container mypage-container">
+        <h2>마이페이지</h2>
+
+        <section class="profile-section">
+            <h3>내 정보</h3>
+            <div class="profile-card">
+                <div class="profile-info">
+                    <div class="info-item">
+                        <span class="label">이메일</span>
+                        <span class="value" id="userEmail">{{ user.email }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">닉네임</span>
+                        <span class="value" id="userNickname">{{ user.nickname }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">휴대폰</span>
+                        <span class="value" id="userPhone">{{ user.phone }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">평점</span>
+                        <span class="value rating">{{ user.rating }}점</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">거래 횟수</span>
+                        <span class="value">{{ user.trade_count }}회</span>
+                    </div>
+                </div>
+                <button class="edit-btn" onclick="openEditModal()">프로필 수정</button>
+            </div>
+        </section>
+
+        <section class="my-items-section">
+            <div class="section-tabs">
+                <button class="tab-btn active" onclick="showTab('tickets')">내 티켓 양도</button>
+                <button class="tab-btn" onclick="showTab('polaroids')">내 폴라로이드</button>
+            </div>
+
+            <div id="ticketsTab" class="tab-content active">
+                <div id="myTickets" class="ticket-list"></div>
+            </div>
+
+            <div id="polaroidsTab" class="tab-content">
+                <div id="myPolaroids" class="polaroid-grid"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 프로필 수정 모달 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h3>프로필 수정</h3>
+            <form id="editForm">
+                <div class="form-group">
+                    <label for="editNickname">닉네임</label>
+                    <input type="text" id="editNickname" required>
+                </div>
+                <div class="form-group">
+                    <label for="editPhone">휴대폰</label>
+                    <input type="tel" id="editPhone" required>
+                </div>
+                <div id="editError" class="error-message"></div>
+                <button type="submit" class="auth-btn">저장</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('/api/me');
+                
+                if (response.status === 401) {
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                const authButtons = document.querySelector('.auth-buttons');
+                if (data.success && data.user) {
+                    authButtons.innerHTML = `
+                        <span class="user-nickname">${data.user.nickname}님</span>
+                        <button onclick="handleLogout()" class="logout-btn">로그아웃</button>
+                    `;
+                }
+            } catch (error) {
+                console.error('로그인 상태 확인 오류:', error);
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                const response = await fetch('/api/logout', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('로그아웃 되었습니다.');
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('로그아웃 오류:', error);
+            }
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) {
+                window.location.href = `/search?q=${encodeURIComponent(query)}`;
+            }
+        }
+
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-btn');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+        }
+
+        async function loadMyTickets() {
+            try {
+                const response = await fetch('/api/my-tickets');
+                const data = await response.json();
+                
+                if (!data.success) {
+                    document.getElementById('myTickets').innerHTML = '<p class="no-data">로그인이 필요합니다.</p>';
+                    return;
+                }
+                
+                const tickets = data.tickets;
+                
+                if (tickets.length === 0) {
+                    document.getElementById('myTickets').innerHTML = '<p class="no-data">등록한 티켓이 없습니다.</p>';
+                    return;
+                }
+                
+                const html = tickets.map(ticket => `
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <h3>${ticket.show_title}</h3>
+                            <span class="price">${ticket.price.toLocaleString()}원</span>
+                        </div>
+                        <div class="ticket-details">
+                            <p><strong>일시:</strong> ${ticket.date} ${ticket.time}</p>
+                            <p><strong>좌석:</strong> ${ticket.seat}</p>
+                            <p><strong>상태:</strong> ${ticket.status}</p>
+                        </div>
+                        <div class="ticket-actions">
+                            <button class="delete-btn" onclick="deleteTicket(${ticket.id})">삭제</button>
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('myTickets').innerHTML = html;
+            } catch (error) {
+                console.error('티켓 로드 오류:', error);
+            }
+        }
+
+        async function loadMyPolaroids() {
+            try {
+                const response = await fetch('/api/my-polaroids');
+                const data = await response.json();
+                
+                if (!data.success) {
+                    document.getElementById('myPolaroids').innerHTML = '<p class="no-data">로그인이 필요합니다.</p>';
+                    return;
+                }
+                
+                const polaroids = data.polaroids;
+                
+                if (polaroids.length === 0) {
+                    document.getElementById('myPolaroids').innerHTML = '<p class="no-data">등록한 폴라로이드가 없습니다.</p>';
+                    return;
+                }
+                
+                const html = polaroids.map(item => `
+                    <div class="polaroid-card">
+                        <div class="polaroid-image">
+                            <img src="${item.image}" alt="${item.actor}">
+                            <span class="trade-badge ${item.type === '양도' ? 'sell' : 'exchange'}">
+                                ${item.type}
+                            </span>
+                        </div>
+                        <div class="polaroid-content">
+                            <h3>${item.actor} 폴라로이드 ${item.type}</h3>
+                            <p class="show-name">${item.show}</p>
+                            ${item.want ? `<p class="want-text">원하는 배우: ${item.want}</p>` : ''}
+                            <p class="description">${item.description}</p>
+                            <div class="ticket-actions">
+                                <button class="delete-btn" onclick="deletePolaroid(${item.id})">삭제</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('myPolaroids').innerHTML = html;
+            } catch (error) {
+                console.error('폴라로이드 로드 오류:', error);
+            }
+        }
+
+        async function deleteTicket(ticketId) {
+            if (!confirm('정말 삭제하시겠습니까?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/delete-ticket/${ticketId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('삭제되었습니다.');
+                    loadMyTickets();
+                } else {
+                    alert(data.message || '삭제에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('삭제 오류:', error);
+                alert('삭제 중 오류가 발생했습니다.');
+            }
+        }
+
+        async function deletePolaroid(polaroidId) {
+            if (!confirm('정말 삭제하시겠습니까?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/delete-polaroid/${polaroidId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('삭제되었습니다.');
+                    loadMyPolaroids();
+                } else {
+                    alert(data.message || '삭제에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('삭제 오류:', error);
+                alert('삭제 중 오류가 발생했습니다.');
+            }
+        }
+
+        function openEditModal() {
+            document.getElementById('editNickname').value = document.getElementById('userNickname').textContent;
+            document.getElementById('editPhone').value = document.getElementById('userPhone').textContent;
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            document.getElementById('editError').textContent = '';
+        }
+
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const nickname = document.getElementById('editNickname').value.trim();
+            const phone = document.getElementById('editPhone').value.trim();
+            const errorEl = document.getElementById('editError');
+            
+            errorEl.textContent = '';
+            
+            try {
+                const response = await fetch('/api/update-profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nickname, phone })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('프로필이 수정되었습니다.');
+                    location.reload();
+                } else {
+                    errorEl.textContent = data.message || '수정에 실패했습니다.';
+                }
+            } catch (error) {
+                console.error('프로필 수정 오류:', error);
+                errorEl.textContent = '수정 중 오류가 발생했습니다.';
+            }
+        });
+
+        // 모달 외부 클릭 시 닫기
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target == modal) {
+                closeEditModal();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+            loadMyTickets();
+            loadMyPolaroids();
+            
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        handleSearch();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>검색 결과 - 공연 양도</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="/">공연 양도</a></h1>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="배우/작품명 검색" value="{{ query }}">
+                <button onclick="handleSearch()">검색</button>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <a href="/">메인</a>
+            <a href="/transfer">양도하기</a>
+            <a href="/polaroid">폴라로이드</a>
+            <a href="/mypage">마이페이지</a>
+        </div>
+    </nav>
+
+    <main class="container search-results-page">
+        <h2 class="search-title">'<span id="queryText">{{ query }}</span>' 검색 결과</h2>
+
+        <section class="result-section" id="actorsSection" style="display: none;">
+            <h3>배우 (<span id="actorCount">0</span>)</h3>
+            <div id="actorResults" class="actor-grid"></div>
+        </section>
+
+        <section class="result-section" id="showsSection" style="display: none;">
+            <h3>공연 (<span id="showCount">0</span>)</h3>
+            <div id="showResults" class="show-grid"></div>
+        </section>
+
+        <section class="result-section" id="ticketsSection" style="display: none;">
+            <h3>티켓 양도 (<span id="ticketCount">0</span>)</h3>
+            <div id="ticketResults" class="ticket-list"></div>
+        </section>
+
+        <section class="result-section" id="polaroidsSection" style="display: none;">
+            <h3>폴라로이드 (<span id="polaroidCount">0</span>)</h3>
+            <div id="polaroidResults" class="polaroid-grid"></div>
+        </section>
+
+        <div id="noResults" class="no-results" style="display: none;">
+            <p>검색 결과가 없습니다.</p>
+        </div>
+    </main>
+
+    <script>
+        const query = "{{ query }}";
+
+        async function loadSearchResults() {
+            if (!query) return;
+
+            try {
+                const res = await fetch(`/api/search_all?q=${encodeURIComponent(query)}`);
+                const data = await res.json();
+
+                renderActors(data.actors);
+                renderShows(data.shows);
+                renderTickets(data.tickets);
+                renderPolaroids(data.polaroids);
+
+                const hasResults = data.actors.length > 0 || data.shows.length > 0 || 
+                                 data.tickets.length > 0 || data.polaroids.length > 0;
+                
+                document.getElementById('noResults').style.display = hasResults ? 'none' : 'block';
+            } catch (error) {
+                console.error('검색 오류:', error);
+            }
+        }
+
+        function renderActors(actors) {
+            if (actors.length === 0) return;
+
+            document.getElementById('actorsSection').style.display = 'block';
+            document.getElementById('actorCount').textContent = actors.length;
+
+            const html = actors.map(actor => `
+                <div class="actor-card" onclick="searchActor('${actor.name}')">
+                    <img src="${actor.image}" alt="${actor.name}">
+                    <div class="actor-info">
+                        <span class="actor-name">${actor.name}</span>
+                        <span class="search-count">${actor.count}회</span>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('actorResults').innerHTML = html;
+        }
+
+        function renderShows(shows) {
+            if (shows.length === 0) return;
+
+            document.getElementById('showsSection').style.display = 'block';
+            document.getElementById('showCount').textContent = shows.length;
+
+            const html = shows.map(show => `
+                <div class="show-card">
+                    <img src="${show.poster}" alt="${show.title}">
+                    <div class="show-info">
+                        <span class="category">${show.category}</span>
+                        <h3>${show.title}</h3>
+                        <p>${show.venue}</p>
+                        ${show.actors ? `
+                            <div class="actor-tags">
+                                ${show.actors.slice(0, 3).map(actor => 
+                                    `<span class="actor-tag">${actor}</span>`
+                                ).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('showResults').innerHTML = html;
+        }
+
+        function renderTickets(tickets) {
+            if (tickets.length === 0) return;
+
+            document.getElementById('ticketsSection').style.display = 'block';
+            document.getElementById('ticketCount').textContent = tickets.length;
+
+            const html = tickets.map(ticket => `
+                <div class="ticket-card">
+                    <div class="ticket-header">
+                        <h3>${ticket.show_title}</h3>
+                        <span class="price">${ticket.price.toLocaleString()}원</span>
+                    </div>
+                    <div class="ticket-details">
+                        <p><strong>일시:</strong> ${ticket.date} ${ticket.time}</p>
+                        <p><strong>좌석:</strong> ${ticket.seat}</p>
+                        <p><strong>판매자:</strong> ${ticket.seller}</p>
+                    </div>
+                    <button class="contact-btn">연락하기</button>
+                </div>
+            `).join('');
+
+            document.getElementById('ticketResults').innerHTML = html;
+        }
+
+        function renderPolaroids(polaroids) {
+            if (polaroids.length === 0) return;
+
+            document.getElementById('polaroidsSection').style.display = 'block';
+            document.getElementById('polaroidCount').textContent = polaroids.length;
+
+            const html = polaroids.map(item => `
+                <div class="polaroid-card">
+                    <div class="polaroid-image">
+                        <img src="${item.image}" alt="${item.actor}">
+                        <span class="trade-badge ${item.type === '양도' ? 'sell' : 'exchange'}">
+                            ${item.type}
+                        </span>
+                    </div>
+                    <div class="polaroid-content">
+                        <h3>${item.actor} 폴라로이드 ${item.type}</h3>
+                        <p class="show-name">${item.show}</p>
+                        ${item.want ? `<p class="want-text">원하는 배우: ${item.want}</p>` : ''}
+                        <p class="description">${item.description}</p>
+                        <div class="polaroid-footer">
+                            <span class="seller">${item.seller}</span>
+                            <span class="date">${item.created_at}</span>
+                        </div>
+                        <button class="contact-btn">연락하기</button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('polaroidResults').innerHTML = html;
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) {
+                window.location.href = `/search?q=${encodeURIComponent(query)}`;
+            }
+        }
+
+        function searchActor(name) {
+            window.location.href = `/search?q=${encodeURIComponent(name)}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        handleSearch();
+                    }
+                });
+            }
+
+            loadSearchResults();
+        });
+    </script>
+</body>
+</html>

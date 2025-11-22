@@ -1,0 +1,337 @@
+# 공연 티켓 양도/폴라로이드 거래 플랫폼 프로젝트
+
+## 프로젝트 개요
+연극/뮤지컬 티켓 양도 및 폴라로이드(굿즈) 교환/양도를 위한 웹 플랫폼
+
+## 기술 스택
+- Backend: Flask (Python)
+- Frontend: HTML, CSS, JavaScript (Vanilla)
+- Database: MongoDB (예정)
+- 반응형: 모바일 우선 디자인
+
+---
+
+## 완료된 작업
+
+### 1. 프로젝트 구조
+```
+project/
+├── app.py              # Flask 메인 애플리케이션
+├── templates/
+│   ├── main.html       # 메인 페이지
+│   ├── transfer.html   # 티켓 양도 페이지
+│   └── polaroid.html   # 폴라로이드 페이지
+└── static/
+    ├── style.css       # 통합 스타일시트
+    └── images/         # 이미지 폴더 (생성 필요)
+        └── posters/    # 포스터 이미지
+```
+
+### 2. 데이터베이스 설계
+**컬렉션 구조:**
+
+```javascript
+// users - 사용자
+{
+  _id: ObjectId,
+  email: String,
+  password: String,
+  nickname: String,
+  phone: String,
+  created_at: Date,
+  rating: Number,
+  trade_count: Number
+}
+
+// shows - 공연 정보
+{
+  _id: ObjectId,
+  title: String,
+  category: String,        // 연극, 뮤지컬
+  venue: String,
+  poster_url: String,
+  start_date: Date,
+  end_date: Date,
+  actors: [String]         // 출연 배우 목록
+}
+
+// show_casts - 배우-작품 매핑
+{
+  show_id: ObjectId,
+  actor: String,
+  role: String,            // 배역
+  date: String             // 출연 날짜 (선택)
+}
+
+// tickets - 티켓 양도
+{
+  _id: ObjectId,
+  show_id: ObjectId,
+  seller_id: ObjectId,
+  show_date: Date,
+  show_time: String,
+  seat_info: String,
+  original_price: Number,
+  sell_price: Number,
+  status: String,          // 판매중, 예약중, 거래완료
+  created_at: Date,
+  images: [String]
+}
+
+// polaroids - 폴라로이드/굿즈
+{
+  _id: ObjectId,
+  show_id: ObjectId,
+  seller_id: ObjectId,
+  actor: String,
+  type: String,            // 양도, 교환
+  want: String,            // 교환 희망 배우
+  description: String,
+  image: String,
+  status: String,
+  created_at: Date
+}
+
+// trades - 거래 내역
+{
+  _id: ObjectId,
+  item_type: String,       // ticket, polaroid
+  item_id: ObjectId,
+  seller_id: ObjectId,
+  buyer_id: ObjectId,
+  price: Number,
+  status: String,          // 진행중, 완료, 취소
+  created_at: Date,
+  completed_at: Date
+}
+```
+
+### 3. 구현된 기능
+
+#### 메인 페이지 (/)
+- 이달의 인기 공연 6개 표시
+- 인기 검색 배우 8명 리스트
+- 배우/작품명 통합 검색
+- 작품 카드에 출연 배우 태그 표시
+
+#### 티켓 양도 페이지 (/transfer)
+- 경고문: "티켓 양도는 정가만 가능합니다"
+- 좌측 사이드바: 카테고리 필터 (전체/연극/뮤지컬)
+- 작품 리스트 (포스터 썸네일)
+- 우측 컨텐츠: 티켓 목록
+- 정렬 기능: 최신순, 가격 낮은순, 가격 높은순
+- 티켓 상세 정보: 일시, 좌석, 가격, 판매자
+
+#### 폴라로이드 페이지 (/polaroid)
+- 경고문: "안전한 거래를 위해 직거래를 권장합니다"
+- 필터: 전체/양도/교환
+- 배우명 검색
+- 카드형 레이아웃
+- 양도/교환 배지 표시
+- 교환 시 원하는 배우 표시
+
+#### API 엔드포인트
+```python
+GET /                      # 메인 페이지
+GET /transfer             # 티켓 양도 페이지
+GET /polaroid             # 폴라로이드 페이지
+GET /api/shows            # 작품 목록 (카테고리 필터)
+GET /api/tickets          # 티켓 목록 (작품별 필터)
+GET /api/polaroids        # 폴라로이드 목록 (타입/배우 필터)
+GET /api/search?q=query   # 통합 검색
+```
+
+### 4. 반응형 디자인
+- 데스크톱: 1200px 컨테이너
+- 태블릿: 768px 브레이크포인트
+- 모바일: 480px 브레이크포인트
+- 그리드 레이아웃 자동 조정
+
+### 5. 더미 데이터
+- 공연 6개
+- 배우 8명
+- 티켓 5개
+- 폴라로이드 8개
+
+---
+
+## 미완료/해야 할 작업
+
+### Phase 1: 핵심 기능 완성
+
+#### 1. MongoDB 연동
+```python
+# 필요 작업:
+- pip install pymongo
+- MongoDB 연결 설정
+- 더미 데이터 마이그레이션
+- CRUD 함수 구현
+```
+
+#### 2. 사용자 인증
+- 회원가입/로그인 페이지
+- 세션 관리
+- 비밀번호 암호화 (bcrypt)
+- 로그인 필수 기능 제한
+
+#### 3. 게시글 작성 기능
+**티켓 양도 등록:**
+- 공연 선택
+- 날짜/시간/좌석 입력
+- 가격 입력 (정가만 가능)
+- 이미지 업로드
+- 폼 검증
+
+**폴라로이드 등록:**
+- 배우/공연 정보 입력
+- 양도/교환 선택
+- 교환 시 원하는 배우 입력
+- 이미지 업로드
+
+#### 4. 상세 페이지
+- 티켓 상세 보기
+- 폴라로이드 상세 보기
+- 판매자 정보
+- 연락하기 기능
+
+#### 5. 이미지 처리
+- 이미지 업로드 기능
+- 리사이징/최적화
+- 저장 경로 설정
+- 실제 공연 포스터 수집
+
+### Phase 2: 고급 기능
+
+#### 1. 검색 개선
+- 전체 텍스트 검색
+- 자동완성
+- 최근 검색어
+- 인기 검색어 실시간 반영
+
+#### 2. 채팅/메시지 시스템
+- 판매자-구매자 1:1 채팅
+- 알림 기능
+- 채팅방 목록
+
+#### 3. 거래 관리
+- 거래 상태 관리
+- 구매 확정
+- 거래 후기/평점
+- 신고 기능
+
+#### 4. 마이페이지
+- 내가 올린 게시글
+- 관심 목록
+- 거래 내역
+- 프로필 수정
+
+#### 5. 관리자 기능
+- 공연 정보 관리
+- 신고 처리
+- 사용자 관리
+- 통계 대시보드
+
+### Phase 3: 최적화 및 배포
+
+#### 1. 성능 최적화
+- 이미지 lazy loading
+- 페이지네이션
+- 캐싱 전략
+- 인덱스 최적화
+
+#### 2. 보안
+- CSRF 토큰
+- XSS 방지
+- SQL Injection 방지
+- Rate Limiting
+
+#### 3. SEO
+- 메타 태그
+- sitemap.xml
+- robots.txt
+- Open Graph
+
+#### 4. 배포
+- 서버 환경 설정
+- 도메인 연결
+- HTTPS 설정
+- 백업 전략
+
+---
+
+## 우선순위 작업 목록
+
+### 즉시 해야 할 일 (P0)
+1. MongoDB 연결 및 데이터 마이그레이션
+2. 사용자 인증 시스템
+3. 게시글 작성 기능
+4. 상세 페이지 구현
+
+### 곧 해야 할 일 (P1)
+1. 이미지 업로드 기능
+2. 검색 기능 개선
+3. 반응형 테스트 및 수정
+4. 실제 공연 데이터 수집
+
+### 나중에 할 일 (P2)
+1. 채팅 시스템
+2. 평점/리뷰 시스템
+3. 관리자 페이지
+4. 알림 기능
+
+---
+
+## 기술적 고려사항
+
+### 1. 이미지 처리
+- 저장 위치: `/static/images/uploads/`
+- 포맷: JPG/PNG (WebP 변환 고려)
+- 최대 크기: 5MB
+- 썸네일 자동 생성
+
+### 2. 보안
+- 가격 검증: 정가와 비교
+- 파일 업로드 검증
+- XSS 필터링
+- CORS 설정
+
+### 3. 데이터베이스 인덱스
+```javascript
+// 필요한 인덱스:
+shows: {title: 1, category: 1}
+tickets: {show_id: 1, status: 1, created_at: -1}
+polaroids: {actor: 1, type: 1, created_at: -1}
+users: {email: 1}
+```
+
+### 4. 환경 변수
+```
+MONGODB_URI=mongodb://localhost:27017/ticket_platform
+SECRET_KEY=your-secret-key
+UPLOAD_FOLDER=/static/images/uploads
+MAX_FILE_SIZE=5242880
+```
+
+---
+
+## 참고사항
+
+### 현재 제약사항
+- 이미지는 placeholder 사용 중
+- 실제 MongoDB 미연결 (더미 데이터)
+- 인증 없음 (모든 기능 접근 가능)
+- 파일 업로드 미구현
+
+### 개발 환경 실행
+```bash
+cd /home/claude
+python app.py
+# http://localhost:5000
+```
+
+### 코딩 규칙
+- 안정적이고 최적화된 코드
+- 요구하지 않은 기능 추가 금지
+- 기존 소스 변경 최소화
+- 이모지 사용 최소화
+- 간결한 응답

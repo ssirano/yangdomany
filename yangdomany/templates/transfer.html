@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>양도하기 - 공연 양도</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="/">공연 양도</a></h1>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="배우/작품명 검색">
+                <button onclick="handleSearch()">검색</button>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <a href="/">메인</a>
+            <a href="/transfer" class="active">양도하기</a>
+            <a href="/polaroid">폴라로이드</a>
+            <a href="/mypage">마이페이지</a>
+        </div>
+    </nav>
+
+    <main class="container transfer-page">
+        <div class="warning-box">
+            <strong>⚠ 주의사항</strong>
+            <p>티켓 양도는 정가만 가능합니다. 암표 거래는 법적 처벌 대상입니다.</p>
+        </div>
+
+        <div class="page-header">
+            <h2>티켓 양도</h2>
+            <button class="create-btn" onclick="openCreateModal()">티켓 등록</button>
+        </div>
+        
+        <div class="transfer-layout">
+            <aside class="category-sidebar">
+                <h3>카테고리</h3>
+                <div class="category-buttons">
+                    <button class="category-btn active" onclick="filterCategory('all')">전체</button>
+                    <button class="category-btn" onclick="filterCategory('연극')">연극</button>
+                    <button class="category-btn" onclick="filterCategory('뮤지컬')">뮤지컬</button>
+                </div>
+                
+                <div id="showList" class="show-list"></div>
+            </aside>
+
+            <section class="ticket-content">
+                <div class="content-header">
+                    <h2>양도 티켓</h2>
+                    <select id="sortSelect" onchange="sortTickets()">
+                        <option value="latest">최신순</option>
+                        <option value="price-low">가격 낮은순</option>
+                        <option value="price-high">가격 높은순</option>
+                    </select>
+                </div>
+                
+                <div id="ticketList" class="ticket-list"></div>
+            </section>
+        </div>
+    </main>
+
+    <!-- 티켓 등록/수정 모달 -->
+    <div id="ticketModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeTicketModal()">&times;</span>
+            <h3 id="modalTitle">티켓 등록</h3>
+            <form id="ticketForm">
+                <input type="hidden" id="ticketId">
+                
+                <div class="form-group">
+                    <label for="showSelect">공연 선택 *</label>
+                    <select id="showSelect" required>
+                        <option value="">공연을 선택하세요</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="ticketDate">관람 날짜 *</label>
+                    <input type="date" id="ticketDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="ticketTime">관람 시간 *</label>
+                    <input type="time" id="ticketTime" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="ticketSeat">좌석 정보 *</label>
+                    <input type="text" id="ticketSeat" placeholder="예: R석 10열 5번" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="ticketPrice">가격 *</label>
+                    <input type="number" id="ticketPrice" placeholder="정가를 입력하세요" required>
+                    <span class="help-text">정가만 입력 가능합니다</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="contactMethod">연락 방법 *</label>
+                    <select id="contactMethod" required onchange="toggleContactInfo()">
+                        <option value="chat">채팅 (준비중)</option>
+                        <option value="phone">전화번호 공개</option>
+                        <option value="kakao">카카오톡 오픈채팅</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="contactInfoGroup" style="display: none;">
+                    <label for="contactInfo">카카오톡 오픈채팅 링크</label>
+                    <input type="text" id="contactInfo" placeholder="https://open.kakao.com/...">
+                </div>
+
+                <div id="ticketError" class="error-message"></div>
+
+                <button type="submit" class="auth-btn">등록하기</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 연락하기 모달 -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeContactModal()">&times;</span>
+            <h3>연락하기</h3>
+            <div id="contactInfo" class="contact-info"></div>
+        </div>
+    </div>
+
+    <script>
+        let allShows = [];
+        let allTickets = [];
+        let currentCategory = 'all';
+        let selectedShowId = null;
+        let currentUser = null;
+
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('/api/me');
+                if (response.status === 401) {
+                    return;
+                }
+                const data = await response.json();
+                if (data.success && data.user) {
+                    currentUser = data.user;
+                }
+            } catch (error) {
+                console.error('로그인 확인 오류:', error);
+            }
+        }
+
+        async function loadShows() {
+            const res = await fetch('/api/shows');
+            allShows = await res.json();
+            renderShows();
+            populateShowSelect();
+        }
+
+        async function loadTickets() {
+            const res = await fetch('/api/tickets');
+            allTickets = await res.json();
+            renderTickets();
+        }
+
+        function populateShowSelect() {
+            const select = document.getElementById('showSelect');
+            const options = allShows.map(show => 
+                `<option value="${show.id}" data-title="${show.title}">${show.title} - ${show.venue}</option>`
+            ).join('');
+            select.innerHTML = '<option value="">공연을 선택하세요</option>' + options;
+        }
+
+        function openCreateModal() {
+            if (!currentUser) {
+                alert('로그인이 필요합니다.');
+                window.location.href = '/login';
+                return;
+            }
+            
+            document.getElementById('modalTitle').textContent = '티켓 등록';
+            document.getElementById('ticketForm').reset();
+            document.getElementById('ticketId').value = '';
+            document.getElementById('ticketModal').style.display = 'block';
+        }
+
+        function openEditModal(ticket) {
+            if (!currentUser || currentUser.nickname !== ticket.seller) {
+                alert('권한이 없습니다.');
+                return;
+            }
+            
+            document.getElementById('modalTitle').textContent = '티켓 수정';
+            document.getElementById('ticketId').value = ticket.id;
+            document.getElementById('showSelect').value = ticket.show_id;
+            document.getElementById('ticketDate').value = ticket.date;
+            document.getElementById('ticketTime').value = ticket.time;
+            document.getElementById('ticketSeat').value = ticket.seat;
+            document.getElementById('ticketPrice').value = ticket.price;
+            document.getElementById('contactMethod').value = ticket.contact_method || 'chat';
+            document.getElementById('contactInfo').value = ticket.contact_info || '';
+            toggleContactInfo();
+            
+            document.getElementById('ticketModal').style.display = 'block';
+        }
+
+        function closeTicketModal() {
+            document.getElementById('ticketModal').style.display = 'none';
+            document.getElementById('ticketError').textContent = '';
+        }
+
+        function toggleContactInfo() {
+            const method = document.getElementById('contactMethod').value;
+            const infoGroup = document.getElementById('contactInfoGroup');
+            infoGroup.style.display = method === 'kakao' ? 'block' : 'none';
+        }
+
+        document.getElementById('ticketForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const ticketId = document.getElementById('ticketId').value;
+            const showSelect = document.getElementById('showSelect');
+            const selectedOption = showSelect.options[showSelect.selectedIndex];
+            
+            const data = {
+                show_id: showSelect.value,
+                show_title: selectedOption.dataset.title,
+                date: document.getElementById('ticketDate').value,
+                time: document.getElementById('ticketTime').value,
+                seat: document.getElementById('ticketSeat').value,
+                price: document.getElementById('ticketPrice').value,
+                contact_method: document.getElementById('contactMethod').value,
+                contact_info: document.getElementById('contactInfo').value
+            };
+            
+            try {
+                const url = ticketId ? `/api/update-ticket/${ticketId}` : '/api/create-ticket';
+                const method = ticketId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(result.message);
+                    closeTicketModal();
+                    loadTickets();
+                } else {
+                    document.getElementById('ticketError').textContent = result.message;
+                }
+            } catch (error) {
+                console.error('등록/수정 오류:', error);
+                document.getElementById('ticketError').textContent = '오류가 발생했습니다.';
+            }
+        });
+
+        async function deleteTicket(ticketId) {
+            if (!confirm('정말 삭제하시겠습니까?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/delete-ticket/${ticketId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('삭제되었습니다.');
+                    loadTickets();
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.error('삭제 오류:', error);
+            }
+        }
+
+        async function contactSeller(ticketId) {
+            if (!currentUser) {
+                alert('로그인이 필요합니다.');
+                window.location.href = '/login';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/ticket-contact/${ticketId}`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    alert(data.message);
+                    return;
+                }
+                
+                const contact = data.contact;
+                let html = `<p><strong>판매자:</strong> ${contact.seller_nickname}</p>`;
+                
+                // 정확한 좌석 정보 추가
+                if (contact.seat_original) {
+                    html += `<p><strong>좌석:</strong> ${contact.seat_original}</p>`;
+                }
+                
+                if (contact.method === 'phone') {
+                    html += `<p><strong>연락처:</strong> ${contact.phone}</p>`;
+                } else if (contact.method === 'kakao') {
+                    html += `<p><strong>카카오톡:</strong> <a href="${contact.kakao_link}" target="_blank">오픈채팅 참여</a></p>`;
+                } else {
+                    html += `<p>${contact.message}</p>`;
+                }
+                
+                document.querySelector('#contactModal .contact-info').innerHTML = html;
+                document.getElementById('contactModal').style.display = 'block';
+            } catch (error) {
+                console.error('연락 정보 로드 오류:', error);
+            }
+        }
+
+        function closeContactModal() {
+            document.getElementById('contactModal').style.display = 'none';
+        }
+
+        function filterCategory(category) {
+            currentCategory = category;
+            selectedShowId = null;
+            
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            renderShows();
+            renderTickets();
+        }
+
+        function renderShows() {
+            const filtered = currentCategory === 'all' 
+                ? allShows 
+                : allShows.filter(s => s.category === currentCategory);
+            
+            const html = filtered.map(show => `
+                <div class="show-item ${selectedShowId === show.id ? 'selected' : ''}" 
+                     onclick="selectShow(${show.id})">
+                    <img src="${show.poster}" alt="${show.title}">
+                    <div>
+                        <span class="show-category">${show.category}</span>
+                        <strong>${show.title}</strong>
+                        <small>${show.venue}</small>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('showList').innerHTML = html;
+        }
+
+        function selectShow(showId) {
+            selectedShowId = showId;
+            renderShows();
+            renderTickets();
+        }
+
+        function renderTickets() {
+            let filtered = selectedShowId 
+                ? allTickets.filter(t => t.show_id === selectedShowId)
+                : allTickets;
+            
+            if (currentCategory !== 'all') {
+                const showIds = allShows
+                    .filter(s => s.category === currentCategory)
+                    .map(s => s.id);
+                filtered = filtered.filter(t => showIds.includes(t.show_id));
+            }
+            
+            if (filtered.length === 0) {
+                document.getElementById('ticketList').innerHTML = 
+                    '<p class="no-data">양도 가능한 티켓이 없습니다.</p>';
+                return;
+            }
+            
+            const html = filtered.map(ticket => {
+                const isMyTicket = currentUser && currentUser.nickname === ticket.seller;
+                
+                return `
+                    <div class="ticket-card">
+                        <div class="ticket-header">
+                            <h3>${ticket.show_title}</h3>
+                            <span class="price">${ticket.price.toLocaleString()}원</span>
+                        </div>
+                        <div class="ticket-details">
+                            <p><strong>일시:</strong> ${ticket.date} ${ticket.time}</p>
+                            <p><strong>좌석:</strong> ${ticket.seat}</p>
+                            <p><strong>판매자:</strong> ${ticket.seller}</p>
+                        </div>
+                        <div class="ticket-actions">
+                            ${isMyTicket ? `
+                                <button class="edit-btn-small" onclick='openEditModal(${JSON.stringify(ticket)})'>수정</button>
+                                <button class="delete-btn" onclick="deleteTicket(${ticket.id})">삭제</button>
+                            ` : `
+                                <button class="contact-btn" onclick="contactSeller(${ticket.id})">연락하기</button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('ticketList').innerHTML = html;
+        }
+
+        function sortTickets() {
+            const sortBy = document.getElementById('sortSelect').value;
+            
+            if (sortBy === 'price-low') {
+                allTickets.sort((a, b) => a.price - b.price);
+            } else if (sortBy === 'price-high') {
+                allTickets.sort((a, b) => b.price - a.price);
+            } else {
+                allTickets.sort((a, b) => b.id - a.id);
+            }
+            
+            renderTickets();
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) {
+                window.location.href = `/search?q=${encodeURIComponent(query)}`;
+            }
+        }
+
+        window.onclick = function(event) {
+            if (event.target.className === 'modal') {
+                event.target.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        handleSearch();
+                    }
+                });
+            }
+            
+            checkLoginStatus().then(() => {
+                loadShows();
+                loadTickets();
+            });
+        });
+    </script>
+</body>
+</html>

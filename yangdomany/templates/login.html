@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 - 공연 양도</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="/">공연 양도</a></h1>
+        </div>
+    </header>
+
+    <main class="container auth-page">
+        <div class="auth-container">
+            <h2>로그인</h2>
+            
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="email">이메일</label>
+                    <input type="email" id="email" name="email" required placeholder="example@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">비밀번호</label>
+                    <input type="password" id="password" name="password" required placeholder="비밀번호를 입력하세요">
+                </div>
+
+                <div id="errorMessage" class="error-message"></div>
+
+                <button type="submit" class="auth-btn">로그인</button>
+            </form>
+
+            <div class="auth-links">
+                <p>계정이 없으신가요? <a href="/register">회원가입</a></p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('loginForm');
+            const errorMessage = document.getElementById('errorMessage');
+
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                errorMessage.textContent = '';
+
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                if (!email || !password) {
+                    errorMessage.textContent = '이메일과 비밀번호를 입력해주세요.';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        alert('로그인 성공!');
+                        // 세션 쿠키 저장 대기
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 100);
+                    } else {
+                        errorMessage.textContent = data.message || '로그인에 실패했습니다.';
+                    }
+                } catch (error) {
+                    console.error('로그인 오류:', error);
+                    errorMessage.textContent = '로그인 중 오류가 발생했습니다.';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

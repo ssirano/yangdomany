@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공연 양도</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="/">공연 양도</a></h1>
+            <div class="header-right">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="배우/작품명 검색">
+                    <button onclick="handleSearch()">검색</button>
+                </div>
+                <div class="auth-buttons">
+                    <a href="/login" class="login-btn">로그인</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <a href="/">메인</a>
+            <a href="/transfer">양도하기</a>
+            <a href="/polaroid">폴라로이드</a>
+            <a href="/mypage">마이페이지</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="popular-section">
+            <h2>이달의 인기 공연</h2>
+            <div class="show-grid">
+                {% for show in shows %}
+                <div class="show-card">
+                    <img src="{{ show.poster }}" alt="{{ show.title }}">
+                    <div class="show-info">
+                        <span class="category">{{ show.category }}</span>
+                        <h3>{{ show.title }}</h3>
+                        <p>{{ show.venue }}</p>
+                        {% if show.actors %}
+                        <div class="actor-tags">
+                            {% for actor in show.actors[:3] %}
+                            <span class="actor-tag">{{ actor }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="actors-section">
+            <h2>인기 검색 배우</h2>
+            <div class="actor-grid">
+                {% for actor in actors %}
+                <div class="actor-card" onclick="searchActor('{{ actor.name }}')">
+                    <img src="{{ actor.image }}" alt="{{ actor.name }}">
+                    <div class="actor-info">
+                        <span class="actor-name">{{ actor.name }}</span>
+                        <span class="search-count">{{ actor.count }}회</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <script>
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('/api/me');
+                
+                if (response.status === 401) {
+                    // 로그인 안됨 - 기본 상태 유지
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                const authButtons = document.querySelector('.auth-buttons');
+                if (data.success && data.user) {
+                    authButtons.innerHTML = `
+                        <span class="user-nickname">${data.user.nickname}님</span>
+                        <button onclick="handleLogout()" class="logout-btn">로그아웃</button>
+                    `;
+                }
+            } catch (error) {
+                console.error('로그인 상태 확인 오류:', error);
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                const response = await fetch('/api/logout', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('로그아웃 되었습니다.');
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error('로그아웃 오류:', error);
+            }
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) {
+                window.location.href = `/search?q=${encodeURIComponent(query)}`;
+            }
+        }
+
+        function searchActor(name) {
+            window.location.href = `/search?q=${encodeURIComponent(name)}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+            
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        handleSearch();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

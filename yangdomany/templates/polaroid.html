@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>폴라로이드 - 공연 양도</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><a href="/">공연 양도</a></h1>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="배우/작품명 검색">
+                <button onclick="handleSearch()">검색</button>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <a href="/">메인</a>
+            <a href="/transfer">양도하기</a>
+            <a href="/polaroid" class="active">폴라로이드</a>
+            <a href="/mypage">마이페이지</a>
+        </div>
+    </nav>
+
+    <main class="container polaroid-page">
+        <div class="warning-box">
+            <strong>⚠ 주의사항</strong>
+            <p>안전한 거래를 위해 직거래를 권장합니다. 사기 피해 주의하세요.</p>
+        </div>
+        
+        <div class="polaroid-header">
+            <h2>폴라로이드 양도/교환</h2>
+            <div class="filter-group">
+                <button class="filter-btn active" onclick="filterType('all')">전체</button>
+                <button class="filter-btn" onclick="filterType('양도')">양도</button>
+                <button class="filter-btn" onclick="filterType('교환')">교환</button>
+            </div>
+        </div>
+
+        <div class="polaroid-search">
+            <input type="text" id="actorSearch" placeholder="배우명으로 검색">
+            <button onclick="searchByActor()">검색</button>
+        </div>
+
+        <div id="polaroidGrid" class="polaroid-grid"></div>
+    </main>
+
+    <script>
+        let allPolaroids = [];
+        let currentType = 'all';
+
+        async function loadPolaroids() {
+            const res = await fetch('/api/polaroids');
+            allPolaroids = await res.json();
+            renderPolaroids();
+        }
+
+        function filterType(type) {
+            currentType = type;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            renderPolaroids();
+        }
+
+        function searchByActor() {
+            const actor = document.getElementById('actorSearch').value;
+            
+            fetch(`/api/polaroids?actor=${encodeURIComponent(actor)}`)
+                .then(res => res.json())
+                .then(data => {
+                    allPolaroids = data;
+                    renderPolaroids();
+                });
+        }
+
+        function renderPolaroids() {
+            let filtered = currentType === 'all' 
+                ? allPolaroids 
+                : allPolaroids.filter(p => p.type === currentType);
+            
+            if (filtered.length === 0) {
+                document.getElementById('polaroidGrid').innerHTML = 
+                    '<p class="no-data">게시글이 없습니다.</p>';
+                return;
+            }
+            
+            const html = filtered.map(item => `
+                <div class="polaroid-card">
+                    <div class="polaroid-image">
+                        <img src="${item.image}" alt="${item.actor}">
+                        <span class="trade-badge ${item.type === '양도' ? 'sell' : 'exchange'}">
+                            ${item.type}
+                        </span>
+                    </div>
+                    <div class="polaroid-content">
+                        <h3>${item.actor} 폴라로이드 ${item.type}</h3>
+                        <p class="show-name">${item.show}</p>
+                        ${item.want ? `<p class="want-text">원하는 배우: ${item.want}</p>` : ''}
+                        <p class="description">${item.description}</p>
+                        <div class="polaroid-footer">
+                            <span class="seller">${item.seller}</span>
+                            <span class="date">${item.created_at}</span>
+                        </div>
+                        <button class="contact-btn">연락하기</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('polaroidGrid').innerHTML = html;
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) {
+                window.location.href = `/search?q=${encodeURIComponent(query)}`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const actorSearch = document.getElementById('actorSearch');
+            
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        handleSearch();
+                    }
+                });
+            }
+
+            if (actorSearch) {
+                actorSearch.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchByActor();
+                    }
+                });
+            }
+
+            loadPolaroids();
+        });
+    </script>
+</body>
+</html>
