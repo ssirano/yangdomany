@@ -9,11 +9,11 @@ from functools import wraps
 auth_bp = Blueprint('auth', __name__)
 
 # MongoDB 연결
-client = MongoClient('mongodb://localhost:27017/')
+client = MongoClient('mongodb+srv://psunyong2:V8Zh6sdvBfaAdUYv@yangdomany.8pjaosi.mongodb.net/')
 db = client['yangdomany']
 
 # JWT 설정
-SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'e13e5b2d2b72d126c883fad60d88ded4c1bea0159f1a324197eb4eb439f85809')
 JWT_EXPIRATION_HOURS = 24
 
 # 로그인 필수 데코레이터
@@ -205,4 +205,5 @@ def check_nickname():
         return jsonify({'available': False})
     
     exists = db.users.find_one({'nickname': nickname}) is not None
+
     return jsonify({'available': not exists})
