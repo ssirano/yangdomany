@@ -23,7 +23,7 @@ app.register_blueprint(mypage_bp)
 app.register_blueprint(ticket_bp)
 
 # MongoDB 연결
-client = MongoClient('mongodb://localhost:27017/')
+client = MongoClient('mongodb+srv://psunyong2:V8Zh6sdvBfaAdUYv@yangdomany.8pjaosi.mongodb.net/')
 db = client['yangdomany']
 
 @app.route('/')
@@ -156,4 +156,5 @@ def get_polaroids():
     return jsonify(polaroids)
 
 if __name__ == '__main__':
+
     app.run(debug=True, port=5000)
