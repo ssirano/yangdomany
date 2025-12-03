@@ -6,7 +6,7 @@ from login import login_required, get_current_user
 mypage_bp = Blueprint('mypage', __name__)
 
 # MongoDB 연결
-client = MongoClient('mongodb+srv://psunyong2:V8Zh6sdvBfaAdUYv@yangdomany.8pjaosi.mongodb.net/'')
+client = MongoClient('mongodb+srv://psunyong2:V8Zh6sdvBfaAdUYv@yangdomany.8pjaosi.mongodb.net/')
 db = client['yangdomany']
 
 @mypage_bp.route('/mypage')
@@ -115,4 +115,5 @@ def delete_polaroid(polaroid_id):
     db.polaroids.delete_one({'_id': polaroid_id})
     
     return jsonify({'success': True, 'message': '삭제되었습니다.'})
+
 
