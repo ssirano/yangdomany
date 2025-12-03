@@ -6,7 +6,7 @@ from login import get_current_user
 ticket_bp = Blueprint('ticket', __name__)
 
 # MongoDB 연결
-client = MongoClient('mongodb+srv://psunyong2:V8Zh6sdvBfaAdUYv@yangdomany.8pjaosi.mongodb.net/'')
+client = MongoClient('mongodb+srv://psunyong2:V8Zh6sdvBfaAdUYv@yangdomany.8pjaosi.mongodb.net/')
 db = client['yangdomany']
 
 def mask_seat_info(seat):
@@ -127,3 +127,4 @@ def get_ticket_contact(ticket_id):
     
 
     return jsonify({'success': True, 'contact': contact_info})
+
