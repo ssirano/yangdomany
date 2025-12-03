@@ -6,7 +6,7 @@ from login import get_current_user
 ticket_bp = Blueprint('ticket', __name__)
 
 # MongoDB 연결
-client = MongoClient('mongodb://localhost:27017/')
+client = MongoClient('mongodb+srv://psunyong2:V8Zh6sdvBfaAdUYv@yangdomany.8pjaosi.mongodb.net/'')
 db = client['yangdomany']
 
 def mask_seat_info(seat):
@@ -125,4 +125,5 @@ def get_ticket_contact(ticket_id):
     else:  # chat (기본)
         contact_info['message'] = '채팅 기능은 준비 중입니다. 판매자에게 문의해주세요.'
     
+
     return jsonify({'success': True, 'contact': contact_info})
