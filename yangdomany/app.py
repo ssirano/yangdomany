@@ -11,7 +11,7 @@ import os
 app = Flask(__name__)
 
 # 세션 설정
-app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
+app.secret_key = os.environ.get('SECRET_KEY', 'e13e5b2d2b72d126c883fad60d88ded4c1bea0159f1a324197eb4eb439f85809')
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
@@ -168,4 +168,5 @@ def get_polaroids():
 if __name__ == '__main__':
 
     app.run(debug=True, port=5000)
+
 
