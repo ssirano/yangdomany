@@ -80,9 +80,20 @@ def get_tickets():
     
     tickets = list(db.tickets.find(query).sort('created_at', -1))
     
-    # 좌석 마스킹 import 추가 필요
-    from ticket import mask_seat_info
+    # mask_seat_info 함수 직접 정의 (import 제거)
+    def mask_seat_info(seat):
+        import re
+        match = re.search(r'(\d+)열\s*(\d+)번', seat)
+        if match:
+            row = match.group(1)
+            seat_num = int(match.group(2))
+            start = max(1, seat_num - 2)
+            end = seat_num + 2
+            prefix = seat.split(match.group(0))[0]
+            return f"{prefix}{row}열 {start}~{end}번"
+        return seat
     
+    # 나머지는 동일
     for ticket in tickets:
         if '_id' in ticket:
             ticket['id'] = ticket['_id']
@@ -90,7 +101,6 @@ def get_tickets():
         if 'created_at' in ticket:
             ticket['created_at'] = ticket['created_at'].strftime('%Y-%m-%d')
         
-        # 좌석 정보 마스킹 추가
         if 'seat' in ticket:
             ticket['seat_original'] = ticket['seat']
             ticket['seat'] = mask_seat_info(ticket['seat'])
@@ -158,3 +168,4 @@ def get_polaroids():
 if __name__ == '__main__':
 
     app.run(debug=True, port=5000)
+
