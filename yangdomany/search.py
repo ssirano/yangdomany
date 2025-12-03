@@ -4,7 +4,7 @@ from pymongo import MongoClient
 search_bp = Blueprint('search', __name__)
 
 # MongoDB 연결
-client = MongoClient('mongodb+srv://psunyong2:V8Zh6sdvBfaAdUYv@yangdomany.8pjaosi.mongodb.net/'')
+client = MongoClient('mongodb+srv://psunyong2:V8Zh6sdvBfaAdUYv@yangdomany.8pjaosi.mongodb.net/')
 db = client['yangdomany']
 
 @search_bp.route('/search')
@@ -112,3 +112,4 @@ def search_all():
         'actors': actors
 
     })
+
