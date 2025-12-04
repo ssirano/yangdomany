@@ -59,9 +59,9 @@ def create_ticket():
         'price': int(data['price']),
         'seller': user['nickname'],
         'seller_id': user['id'],
-        'status': '판매중',
+        'status': 'pending',  # 기본값을 pending으로 변경
         'created_at': datetime.now(),
-        'contact_method': data.get('contact_method', 'chat'),  # chat, phone, kakao
+        'contact_method': data.get('contact_method', 'chat'),
         'contact_info': data.get('contact_info', '')
     }
     

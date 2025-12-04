@@ -10,6 +10,7 @@ from login import auth_bp
 from mypage import mypage_bp
 from ticket import ticket_bp
 from oauth import oauth_bp, oauth
+from admin import admin_bp
 import os
 
 
@@ -28,6 +29,7 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(mypage_bp)
 app.register_blueprint(ticket_bp)
 app.register_blueprint(oauth_bp)
+app.register_blueprint(admin_bp)
 # MongoDB 연결
 client = MongoClient('mongodb+srv://psunyong2:V8Zh6sdvBfaAdUYv@yangdomany.8pjaosi.mongodb.net/')
 db = client['yangdomany']
@@ -84,7 +86,7 @@ def get_shows():
 def get_tickets():
     show_id = request.args.get('show_id', type=int)
     
-    query = {}
+    query = {'status': 'approved'}  # 승인된 티켓만
     if show_id:
         query['show_id'] = show_id
     

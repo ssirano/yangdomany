@@ -75,6 +75,13 @@ def find_or_create_user(provider, provider_id, email, nickname):
     user = users.find_one({'provider': provider, 'provider_id': provider_id})
     
     if not user:
+        # 닉네임 중복 체크 및 자동 변경
+        original_nickname = nickname
+        counter = 1
+        while users.find_one({'nickname': nickname}):
+            nickname = f"{original_nickname}_{counter}"
+            counter += 1
+        
         user_data = {
             'provider': provider,
             'provider_id': provider_id,
