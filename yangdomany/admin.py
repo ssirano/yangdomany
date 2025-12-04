@@ -18,6 +18,15 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         from login import get_current_user
         user = get_current_user()
+        
+        # 디버깅 출력
+        print(f"=== Admin Check ===")
+        print(f"User: {user}")
+        print(f"User Email: {user.get('email') if user else 'None'}")
+        print(f"Admin Emails: {ADMIN_EMAILS}")
+        print(f"Is Admin: {user.get('email') in ADMIN_EMAILS if user else False}")
+        print(f"==================")
+        
         if not user or user.get('email') not in ADMIN_EMAILS:
             return redirect(url_for('main'))
         return f(*args, **kwargs)
