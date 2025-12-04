@@ -46,7 +46,8 @@ def get_current_user():
         if user:
             user['id'] = str(user['_id'])
             del user['_id']
-            del user['password']
+            if 'password' in user:  # password 필드가 있을 때만 삭제
+                del user['password']
         return user
     except Exception as e:
         print(f"토큰 검증 오류: {e}")

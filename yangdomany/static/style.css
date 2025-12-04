@@ -1220,3 +1220,65 @@ main {
         width: 100%;
     }
 }
+
+/* 소셜 로그인 버튼 수정 */
+.social-login {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.social-login p {
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.social-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.oauth-btn {
+    display: block;
+    padding: 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    text-align: center;
+    transition: all 0.2s;
+    border: 1px solid #ddd;
+}
+
+.oauth-btn.google-btn {
+    background: #fff;
+    color: #757575;
+}
+
+.oauth-btn.google-btn:hover {
+    background: #f8f8f8;
+}
+
+.oauth-btn.kakao-btn {
+    background: #FEE500;
+    color: #000000;
+    border-color: #FEE500;
+}
+
+.oauth-btn.kakao-btn:hover {
+    background: #FDD835;
+    border-color: #FDD835;
+}
+.oauth-btn.naver-btn {
+    background: #03C75A;
+    color: #ffffff;
+    border-color: #03C75A;
+}
+
+.oauth-btn.naver-btn:hover {
+    background: #02b350;
+    border-color: #02b350;
+}

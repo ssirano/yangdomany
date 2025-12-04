@@ -1,4 +1,7 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for
+from dotenv import load_dotenv
+load_dotenv() 
+from flask import Flask, render_template, jsonify, request, redirect, url_for, session
+
 from pymongo import MongoClient
 from datetime import datetime, timedelta
 from bson import ObjectId
@@ -6,33 +9,34 @@ from search import search_bp
 from login import auth_bp
 from mypage import mypage_bp
 from ticket import ticket_bp
+from oauth import oauth_bp, oauth
 import os
 
-app = Flask(__name__)
 
+
+app = Flask(__name__)
+oauth.init_app(app)
 # 세션 설정
 app.secret_key = os.environ.get('SECRET_KEY', 'e13e5b2d2b72d126c883fad60d88ded4c1bea0159f1a324197eb4eb439f85809')
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = False  # 이 줄 추가 (로컬에서는 False)
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
-
 # Blueprint 등록
 app.register_blueprint(search_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(mypage_bp)
 app.register_blueprint(ticket_bp)
-
+app.register_blueprint(oauth_bp)
 # MongoDB 연결
 client = MongoClient('mongodb+srv://psunyong2:V8Zh6sdvBfaAdUYv@yangdomany.8pjaosi.mongodb.net/')
 db = client['yangdomany']
 
 @app.route('/')
 def main():
-    # 인기순으로 정렬하여 상위 6개 가져오기
     shows = list(db.shows.find().sort('popularity', -1).limit(6))
     actors = list(db.actors.find().sort('count', -1))
     
-    # ObjectId를 문자열로 변환
     for show in shows:
         if '_id' in show:
             show['id'] = show['_id']
@@ -42,7 +46,12 @@ def main():
         if '_id' in actor:
             del actor['_id']
     
-    return render_template('main.html', shows=shows, actors=actors)
+    # 세션 정보 전달
+    return render_template('main.html', 
+                         shows=shows, 
+                         actors=actors,
+                         logged_in=session.get('logged_in', False),
+                         nickname=session.get('nickname', ''))
 
 @app.route('/transfer')
 def transfer():
@@ -69,6 +78,7 @@ def get_shows():
             del show['_id']
     
     return jsonify(shows)
+
 
 @app.route('/api/tickets')
 def get_tickets():
@@ -107,41 +117,25 @@ def get_tickets():
     
     return jsonify(tickets)
 
-@app.route('/api/search')
-def search():
-    query = request.args.get('q', '').lower()
+@app.route('/api/me')
+def get_current_user():
+    print(f"=== /api/me called ===")
+    print(f"Cookies: {request.cookies}")
+    print(f"Session: {dict(session)}")
+    print(f"logged_in: {session.get('logged_in')}")
+    print(f"=====================")
     
-    # 작품 검색 (제목에서 검색)
-    show_results = list(db.shows.find({
-        'title': {'$regex': query, '$options': 'i'}
-    }))
+    if not session.get('logged_in'):
+        return jsonify({'success': False}), 401
     
-    # 배우 검색
-    actor_results = list(db.actors.find({
-        'name': {'$regex': query, '$options': 'i'}
-    }))
+    user_id = session.get('user_id')
+    user = db.users.find_one({'_id': ObjectId(user_id)})
     
-    # 배우가 검색되면 해당 배우가 출연한 작품들 포함
-    if actor_results and not show_results:
-        actor_names = [a['name'] for a in actor_results]
-        show_ids = [cast['show_id'] for cast in db.show_casts.find({'actor': {'$in': actor_names}})]
-        show_results = list(db.shows.find({'_id': {'$in': show_ids}}))
+    if user:
+        user['_id'] = str(user['_id'])
+        return jsonify({'success': True, 'user': user})
     
-    # ObjectId 변환
-    for show in show_results:
-        if '_id' in show:
-            show['id'] = show['_id']
-            del show['_id']
-    
-    for actor in actor_results:
-        if '_id' in actor:
-            del actor['_id']
-    
-    return jsonify({
-        'shows': show_results,
-        'actors': actor_results
-    })
-
+    return jsonify({'success': False}), 401
 @app.route('/api/polaroids')
 def get_polaroids():
     trade_type = request.args.get('type', '')
