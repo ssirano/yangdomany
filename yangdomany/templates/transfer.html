@@ -150,7 +150,8 @@
                 
                 const authButtons = document.querySelector('.auth-buttons');
                 if (data.success && data.user) {
-                    // transfer.html에만: currentUser = data.user;
+                    // currentUser 설정 추가
+                    currentUser = data.user;  // 이 줄 추가
                     
                     authButtons.innerHTML = `
                         <span class="user-nickname">${data.user.nickname}님</span>
