@@ -208,3 +208,14 @@ def check_nickname():
     exists = db.users.find_one({'nickname': nickname}) is not None
 
     return jsonify({'available': not exists})
+
+@auth_bp.route('/api/is-admin')
+def is_admin():
+    user = get_current_user()
+    if not user:
+        return jsonify({'is_admin': False})
+    
+    from admin import ADMIN_EMAILS
+    is_admin_user = user.get('email') in ADMIN_EMAILS
+    
+    return jsonify({'is_admin': is_admin_user})

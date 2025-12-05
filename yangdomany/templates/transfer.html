@@ -21,8 +21,9 @@
         <div class="container">
             <a href="/">메인</a>
             <a href="/transfer" class="active">양도하기</a>
-            <a href="/polaroid">폴라로이드</a>
+            <!-- <a href="/polaroid">폴라로이드</a> -->
             <a href="/mypage">마이페이지</a>
+            <a href="/admin" id="adminMenu" style="display: none; color: #ff6b6b; font-weight: 600;">관리자</a>
         </div>
     </nav>
 
@@ -140,15 +141,44 @@
         async function checkLoginStatus() {
             try {
                 const response = await fetch('/api/me');
+                
                 if (response.status === 401) {
                     return;
                 }
+                
                 const data = await response.json();
+                
+                const authButtons = document.querySelector('.auth-buttons');
                 if (data.success && data.user) {
-                    currentUser = data.user;
+                    // transfer.html에만: currentUser = data.user;
+                    
+                    authButtons.innerHTML = `
+                        <span class="user-nickname">${data.user.nickname}님</span>
+                        <button onclick="handleLogout()" class="logout-btn">로그아웃</button>
+                    `;
+                    
+                    // 관리자 여부 확인
+                    checkAdminMenu();
                 }
             } catch (error) {
-                console.error('로그인 확인 오류:', error);
+                console.error('로그인 상태 확인 오류:', error);
+            }
+        }
+
+        // 관리자 메뉴 확인
+        async function checkAdminMenu() {
+            try {
+                const response = await fetch('/api/is-admin');
+                const data = await response.json();
+                
+                if (data.is_admin) {
+                    const adminMenu = document.getElementById('adminMenu');
+                    if (adminMenu) {
+                        adminMenu.style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('관리자 확인 오류:', error);
             }
         }
 

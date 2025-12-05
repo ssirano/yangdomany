@@ -67,7 +67,7 @@ oauth.register(
     access_token_url='https://nid.naver.com/oauth2.0/token',
     authorize_url='https://nid.naver.com/oauth2.0/authorize',
     api_base_url='https://openapi.naver.com/',
-    client_kwargs={'scope': 'name email'}
+    client_kwargs={'scope': 'name email'} 
 )
 
 
@@ -79,7 +79,7 @@ def find_or_create_user(provider, provider_id, email, nickname):
         original_nickname = nickname
         counter = 1
         while users.find_one({'nickname': nickname}):
-            nickname = f"{original_nickname}_{counter}"
+            nickname = f"{original_nickname}_{counter}" 
             counter += 1
         
         user_data = {
@@ -113,8 +113,11 @@ def create_jwt_token(user):
 @oauth_bp.route('/auth/google')
 def google_login():
     redirect_uri = url_for('oauth.google_callback', _external=True)
-    return oauth.google.authorize_redirect(redirect_uri)
-
+    # prompt='select_account' 추가로 매번 계정 선택
+    return oauth.google.authorize_redirect(
+        redirect_uri,
+        prompt='select_account'
+    )
 @oauth_bp.route('/auth/google/callback')
 def google_callback():
     try:
@@ -146,7 +149,11 @@ def google_callback():
 @oauth_bp.route('/auth/kakao')
 def kakao_login():
     redirect_uri = url_for('oauth.kakao_callback', _external=True)
-    return oauth.kakao.authorize_redirect(redirect_uri)
+    # prompt='login' 추가로 매번 로그인
+    return oauth.kakao.authorize_redirect(
+        redirect_uri,
+        prompt='login'
+    )
 
 @oauth_bp.route('/auth/kakao/callback')
 def kakao_callback():
@@ -180,7 +187,11 @@ def kakao_callback():
 @oauth_bp.route('/auth/naver')
 def naver_login():
     redirect_uri = url_for('oauth.naver_callback', _external=True)
-    return oauth.naver.authorize_redirect(redirect_uri)
+    # auth_type='reprompt' 추가로 매번 인증
+    return oauth.naver.authorize_redirect(
+        redirect_uri,
+        auth_type='reprompt'
+    )
 
 @oauth_bp.route('/auth/naver/callback')
 def naver_callback():
