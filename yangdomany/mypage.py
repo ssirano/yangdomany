@@ -21,7 +21,6 @@ def my_tickets():
     if not user:
         return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
     
-    # 내가 올린 티켓
     tickets = list(db.tickets.find({'seller': user['nickname']}).sort('created_at', -1))
     
     for ticket in tickets:
@@ -30,9 +29,11 @@ def my_tickets():
             del ticket['_id']
         if 'created_at' in ticket and hasattr(ticket['created_at'], 'strftime'):
             ticket['created_at'] = ticket['created_at'].strftime('%Y-%m-%d')
+        # 거부 사유 포함
+        if ticket.get('status') == 'rejected':
+            ticket['reject_reason'] = ticket.get('reject_reason', '관리자에게 문의하세요')
     
     return jsonify({'success': True, 'tickets': tickets})
-
 @mypage_bp.route('/api/my-polaroids')
 def my_polaroids():
     user = get_current_user()

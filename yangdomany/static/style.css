@@ -1282,3 +1282,690 @@ main {
     background: #02b350;
     border-color: #02b350;
 }
+
+/* ==================== 모바일 최적화 ==================== */
+
+/* 태블릿 (768px 이하) */
+@media (max-width: 768px) {
+    /* 헤더 */
+    header .container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    header h1 {
+        font-size: 20px;
+        text-align: center;
+    }
+    
+    .header-right {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+    }
+    
+    .search-box {
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .auth-buttons {
+        justify-content: center;
+    }
+    
+    /* 네비게이션 */
+    nav .container {
+        gap: 15px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    nav a {
+        white-space: nowrap;
+        padding: 12px 0;
+        font-size: 14px;
+    }
+    
+    /* 메인 컨테이너 */
+    main.container {
+        padding: 20px 15px;
+    }
+    
+    /* 공연 그리드 */
+    .show-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+    
+    .show-card img {
+        aspect-ratio: 3/4;
+    }
+    
+    .show-info {
+        padding: 8px;
+    }
+    
+    .show-info h3 {
+        font-size: 13px;
+    }
+    
+    .show-info p {
+        font-size: 11px;
+    }
+    
+    /* 배우 그리드 */
+    .actor-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+    
+    .actor-info {
+        padding: 8px;
+    }
+    
+    .actor-name {
+        font-size: 13px;
+    }
+    
+    .search-count {
+        font-size: 11px;
+    }
+    
+    /* 양도 페이지 레이아웃 */
+    .transfer-layout {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .category-sidebar {
+        position: static;
+        padding: 15px;
+    }
+    
+    .category-buttons {
+        flex-direction: row;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .category-btn {
+        white-space: nowrap;
+        min-width: 80px;
+    }
+    
+    .show-list {
+        max-height: none;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+    
+    .show-item {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 8px;
+    }
+    
+    .show-item img {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 3/4;
+    }
+    
+    .show-item strong {
+        font-size: 12px;
+    }
+    
+    .show-item small {
+        font-size: 10px;
+    }
+    
+    /* 티켓 콘텐츠 */
+    .ticket-content {
+        padding: 15px;
+    }
+    
+    .content-header {
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .content-header h2 {
+        font-size: 18px;
+    }
+    
+    #sortSelect {
+        font-size: 13px;
+        padding: 6px 10px;
+    }
+    
+    .ticket-card {
+        padding: 15px;
+    }
+    
+    .ticket-header h3 {
+        font-size: 16px;
+    }
+    
+    .price {
+        font-size: 18px;
+    }
+    
+    .ticket-details p {
+        font-size: 13px;
+    }
+    
+    /* 페이지 헤더 */
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .page-header h2 {
+        font-size: 20px;
+    }
+    
+    .create-btn {
+        width: 100%;
+    }
+    
+    /* 경고 박스 */
+    .warning-box {
+        padding: 12px 15px;
+    }
+    
+    .warning-box strong {
+        font-size: 14px;
+    }
+    
+    .warning-box p {
+        font-size: 13px;
+    }
+    
+    /* 검색 결과 */
+    .search-title {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .result-section {
+        margin-bottom: 35px;
+    }
+    
+    .result-section h3 {
+        font-size: 18px;
+    }
+    
+    /* 마이페이지 */
+    .mypage-container {
+        padding: 20px 15px;
+    }
+    
+    .mypage-container h2 {
+        font-size: 22px;
+    }
+    
+    .profile-card {
+        padding: 20px 15px;
+    }
+    
+    .info-item {
+        flex-direction: column;
+        gap: 5px;
+        padding: 10px 0;
+    }
+    
+    .info-item .label {
+        width: auto;
+        font-size: 12px;
+        color: #999;
+    }
+    
+    .info-item .value {
+        font-size: 15px;
+    }
+    
+    .section-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .tab-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+    
+    /* 모달 */
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+        padding: 25px 20px;
+    }
+    
+    .modal-content h3 {
+        font-size: 18px;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 14px;
+    }
+    
+    /* 로그인/회원가입 */
+    .auth-container {
+        padding: 30px 20px;
+    }
+    
+    .auth-container h2 {
+        font-size: 22px;
+    }
+    
+    /* Footer */
+    footer {
+        padding: 30px 15px !important;
+    }
+    
+    footer h3 {
+        font-size: 18px !important;
+    }
+    
+    footer p {
+        font-size: 13px !important;
+    }
+    
+    footer div[style*="gap: 20px"] {
+        gap: 15px !important;
+    }
+}
+
+/* 작은 모바일 (480px 이하) */
+@media (max-width: 480px) {
+    /* 헤더 */
+    header h1 {
+        font-size: 18px;
+    }
+    
+    .search-box input {
+        font-size: 14px;
+        padding: 8px;
+    }
+    
+    .search-box button {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+    
+    /* 네비게이션 */
+    nav a {
+        font-size: 13px;
+        padding: 10px 0;
+    }
+    
+    /* 공연 그리드 - 2열 */
+    .show-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .show-info {
+        padding: 6px;
+    }
+    
+    .show-info h3 {
+        font-size: 12px;
+    }
+    
+    .category {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+    
+    .actor-tag {
+        font-size: 9px;
+        padding: 2px 4px;
+    }
+    
+    /* 배우 그리드 - 2열 */
+    .actor-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .actor-name {
+        font-size: 12px;
+    }
+    
+    /* 카테고리 버튼 */
+    .category-btn {
+        font-size: 13px;
+        padding: 8px;
+        min-width: 70px;
+    }
+    
+    /* 공연 리스트 - 2열 */
+    .show-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* 티켓 카드 */
+    .ticket-card {
+        padding: 12px;
+    }
+    
+    .ticket-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .ticket-header h3 {
+        font-size: 15px;
+    }
+    
+    .price {
+        font-size: 16px;
+    }
+    
+    .ticket-details p {
+        font-size: 12px;
+        margin: 6px 0;
+    }
+    
+    .ticket-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .ticket-actions button {
+        width: 100%;
+    }
+    
+    .contact-btn {
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    /* 정렬 셀렉트 */
+    .content-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    #sortSelect {
+        width: 100%;
+    }
+    
+    /* 페이지 제목 */
+    .page-header h2 {
+        font-size: 18px;
+    }
+    
+    .popular-section h2,
+    .actors-section h2 {
+        font-size: 18px;
+    }
+    
+    /* 검색 결과 */
+    .search-title {
+        font-size: 18px;
+    }
+    
+    .result-section h3 {
+        font-size: 16px;
+    }
+    
+    /* 폴라로이드 그리드 - 2열 */
+    .polaroid-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .polaroid-content {
+        padding: 10px;
+    }
+    
+    .polaroid-content h3 {
+        font-size: 13px;
+    }
+    
+    .description {
+        font-size: 12px;
+    }
+    
+    /* 마이페이지 */
+    .mypage-container h2 {
+        font-size: 20px;
+    }
+    
+    .profile-section h3,
+    .my-items-section h3 {
+        font-size: 17px;
+    }
+    
+    .tab-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    
+    /* 모달 */
+    .modal-content {
+        margin: 10px;
+        padding: 20px 15px;
+    }
+    
+    .close {
+        font-size: 24px;
+        right: 15px;
+        top: 15px;
+    }
+    
+    /* 버튼 */
+    .auth-btn,
+    .create-btn,
+    .edit-btn {
+        font-size: 14px;
+        padding: 12px;
+    }
+    
+    .edit-btn-small,
+    .delete-btn {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    
+    /* Footer */
+    footer {
+        padding: 25px 15px !important;
+    }
+    
+    footer a {
+        font-size: 12px !important;
+    }
+}
+
+/* 초소형 모바일 (360px 이하) */
+@media (max-width: 360px) {
+    .show-grid,
+    .actor-grid,
+    .polaroid-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    header h1 {
+        font-size: 16px;
+    }
+    
+    nav a {
+        font-size: 12px;
+    }
+    
+    .ticket-card {
+        padding: 10px;
+    }
+    
+    .ticket-header h3 {
+        font-size: 14px;
+    }
+    
+    .price {
+        font-size: 15px;
+    }
+}
+
+/* 관리자 페이지 모바일 최적화 */
+@media (max-width: 768px) {
+    .admin-container {
+        padding: 20px 15px;
+    }
+    
+    .admin-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .admin-header h1 {
+        font-size: 22px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .stat-card {
+        padding: 15px;
+    }
+    
+    .stat-card h3 {
+        font-size: 12px;
+    }
+    
+    .stat-card .number {
+        font-size: 24px;
+    }
+    
+    .admin-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .admin-tab-btn {
+        font-size: 13px;
+        padding: 10px 16px;
+        white-space: nowrap;
+    }
+    
+    .admin-table {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .admin-table table {
+        min-width: 600px;
+    }
+    
+    .admin-table th,
+    .admin-table td {
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .action-buttons button {
+        width: 100%;
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+}
+
+/* 후원 페이지 모바일 최적화 */
+@media (max-width: 768px) {
+    .support-page {
+        padding: 30px 15px;
+    }
+    
+    .support-hero h1 {
+        font-size: 26px;
+    }
+    
+    .support-hero p {
+        font-size: 14px;
+    }
+    
+    .support-main {
+        padding: 30px 20px;
+    }
+    
+    .support-main h2 {
+        font-size: 20px;
+    }
+    
+    .qr-container {
+        padding: 20px;
+    }
+    
+    .qr-container img {
+        max-width: 200px;
+    }
+    
+    .instruction h3 {
+        font-size: 15px;
+    }
+    
+    .instruction ol {
+        font-size: 13px;
+    }
+    
+    .thank-you {
+        padding: 25px 20px;
+    }
+    
+    .thank-you h3 {
+        font-size: 20px;
+    }
+    
+    .thank-you p {
+        font-size: 13px;
+    }
+    
+    .security-notice {
+        padding: 15px;
+    }
+    
+    .security-notice h4 {
+        font-size: 14px;
+    }
+    
+    .security-notice p {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .support-hero h1 {
+        font-size: 22px;
+    }
+    
+    .support-main {
+        padding: 25px 15px;
+    }
+    
+    .qr-container img {
+        max-width: 180px;
+    }
+    
+    .kakao-icon {
+        font-size: 36px;
+    }
+}

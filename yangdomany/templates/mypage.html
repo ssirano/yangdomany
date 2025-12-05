@@ -177,7 +177,20 @@
             event.target.classList.add('active');
             document.getElementById(`${tabName}Tab`).classList.add('active');
         }
+        function showLoading() {
+            document.body.insertAdjacentHTML('beforeend', `
+                <div id="loading" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+                    <div style="background: white; padding: 30px; border-radius: 8px; text-align: center;">
+                        <p style="margin: 0; font-size: 18px;">처리 중...</p>
+                    </div>
+                </div>
+            `);
+        }
 
+        function hideLoading() {
+            const loading = document.getElementById('loading');
+            if (loading) loading.remove();
+        }
         async function loadMyTickets() {
             try {
                 const response = await fetch('/api/my-tickets');
@@ -195,22 +208,41 @@
                     return;
                 }
                 
-                const html = tickets.map(ticket => `
-                    <div class="ticket-card">
-                        <div class="ticket-header">
-                            <h3>${ticket.show_title}</h3>
-                            <span class="price">${ticket.price.toLocaleString()}원</span>
+                const html = tickets.map(ticket => {
+                    let statusText = '';
+                    let statusColor = '';
+                    
+                    if (ticket.status === 'pending') {
+                        statusText = '승인 대기';
+                        statusColor = '#ffa500';
+                    } else if (ticket.status === 'approved') {
+                        statusText = '승인 완료';
+                        statusColor = '#28a745';
+                    } else if (ticket.status === 'rejected') {
+                        statusText = '거부됨';
+                        statusColor = '#dc3545';
+                    }
+                    
+                    return `
+                        <div class="ticket-card">
+                            <div class="ticket-header">
+                                <h3>${ticket.show_title}</h3>
+                                <span class="price">${ticket.price.toLocaleString()}원</span>
+                            </div>
+                            <div class="ticket-details">
+                                <p><strong>일시:</strong> ${ticket.date} ${ticket.time}</p>
+                                <p><strong>좌석:</strong> ${ticket.seat}</p>
+                                <p><strong>상태:</strong> <span style="color: ${statusColor}; font-weight: 600;">${statusText}</span></p>
+                                ${ticket.status === 'rejected' && ticket.reject_reason ? 
+                                    `<p style="color: #dc3545; font-size: 13px; margin-top: 5px;"><strong>거부 사유:</strong> ${ticket.reject_reason}</p>` 
+                                    : ''}
+                            </div>
+                            <div class="ticket-actions">
+                                <button class="delete-btn" onclick="deleteTicket(${ticket.id})">삭제</button>
+                            </div>
                         </div>
-                        <div class="ticket-details">
-                            <p><strong>일시:</strong> ${ticket.date} ${ticket.time}</p>
-                            <p><strong>좌석:</strong> ${ticket.seat}</p>
-                            <p><strong>상태:</strong> ${ticket.status}</p>
-                        </div>
-                        <div class="ticket-actions">
-                            <button class="delete-btn" onclick="deleteTicket(${ticket.id})">삭제</button>
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
                 
                 document.getElementById('myTickets').innerHTML = html;
             } catch (error) {
@@ -374,4 +406,27 @@
         });
     </script>
 </body>
+<footer style="background: #f8f8f8; padding: 40px 20px; margin-top: 60px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h3 style="color: #6b46c1; font-size: 20px; margin-bottom: 10px;">양도마니</h3>
+            <p style="color: #666; font-size: 14px;">정가 티켓 양도 플랫폼</p>
+        </div>
+        
+        <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
+            <a href="/privacy" style="color: #6b46c1; text-decoration: none; font-size: 14px;">개인정보처리방침</a>
+            <a href="/terms" style="color: #6b46c1; text-decoration: none; font-size: 14px;">이용약관</a>
+            <a href="/support" style="color: #ff6b6b; text-decoration: none; font-size: 14px; font-weight: 600;">☕ 후원하기</a>
+        </div>
+        
+        <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+            <p style="color: #999; font-size: 13px; margin: 5px 0;">
+                문의: psunyong2@gmail.com
+            </p>
+            <p style="color: #ccc; font-size: 12px; margin-top: 10px;">
+                © 2025 양도마니. All rights reserved.
+            </p>
+        </div>
+    </div>
+</footer>
 </html>

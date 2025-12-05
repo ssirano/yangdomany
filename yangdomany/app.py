@@ -34,6 +34,14 @@ app.register_blueprint(admin_bp)
 client = MongoClient('mongodb+srv://psunyong2:V8Zh6sdvBfaAdUYv@yangdomany.8pjaosi.mongodb.net/')
 db = client['yangdomany']
 
+
+@app.after_request
+def set_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    return response
+
 @app.route('/')
 def main():
     shows = list(db.shows.find().sort('popularity', -1).limit(6))
@@ -62,6 +70,26 @@ def transfer():
 @app.route('/polaroid')
 def polaroid():
     return render_template('polaroid.html')
+
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
+
+@app.route('/terms')
+def terms():
+    return render_template('terms.html')
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(e):
+    return render_template('500.html'), 500
+
+@app.route('/support')
+def support():
+    return render_template('support.html')
 
 @app.route('/api/shows')
 def get_shows():

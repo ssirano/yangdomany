@@ -13,88 +13,48 @@
         </div>
     </header>
 
-    <main class="container auth-page">
+    <main class="auth-page">
         <div class="auth-container">
             <h2>로그인</h2>
             
-            <form id="loginForm" class="auth-form">
-                <div class="form-group">
-                    <label for="email">이메일</label>
-                    <input type="email" id="email" name="email" required placeholder="example@email.com">
+            <div class="social-login">
+                <p>소셜 계정으로 간편하게 시작하세요</p>
+                <div class="social-buttons">
+                    <a href="/auth/google" class="oauth-btn google-btn">
+                        구글 로그인
+                    </a>
+                    <a href="/auth/kakao" class="oauth-btn kakao-btn">
+                        카카오 로그인
+                    </a>
+                    <a href="/auth/naver" class="oauth-btn naver-btn">
+                        네이버 로그인
+                    </a>
                 </div>
-
-                <div class="form-group">
-                    <label for="password">비밀번호</label>
-                    <input type="password" id="password" name="password" required placeholder="비밀번호를 입력하세요">
-                </div>
-
-                <div id="errorMessage" class="error-message"></div>
-
-                <button type="submit" class="auth-btn">로그인</button>
-            </form>
-            <div style="margin-top: 2rem; text-align: center;">
-                <p style="color: #666; margin-bottom: 1rem;">또는</p>
-                <a href="/auth/google" style="display: block; padding: 0.75rem; background: #fff; color: #757575; border: 1px solid #ddd; border-radius: 4px; text-decoration: none; font-weight: 500;">
-                    Google로 로그인
-                </a>
-                <a href="/auth/kakao" class="oauth-btn kakao-btn">
-                    카카오 로그인
-                </a>
-                <a href="/auth/naver" class="oauth-btn naver-btn">
-                    네이버 로그인
-                </a>
-            </div>
-            
-
-            <div class="auth-links">
-                <p>계정이 없으신가요? <a href="/register">회원가입</a></p>
             </div>
         </div>
     </main>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('loginForm');
-            const errorMessage = document.getElementById('errorMessage');
-
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                errorMessage.textContent = '';
-
-                const email = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value;
-
-                if (!email || !password) {
-                    errorMessage.textContent = '이메일과 비밀번호를 입력해주세요.';
-                    return;
-                }
-
-                try {
-                    const response = await fetch('/api/login', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ email, password })
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        alert('로그인 성공!');
-                        // 세션 쿠키 저장 대기
-                        setTimeout(() => {
-                            window.location.href = '/';
-                        }, 100);
-                    } else {
-                        errorMessage.textContent = data.message || '로그인에 실패했습니다.';
-                    }
-                } catch (error) {
-                    console.error('로그인 오류:', error);
-                    errorMessage.textContent = '로그인 중 오류가 발생했습니다.';
-                }
-            });
-        });
-    </script>
 </body>
+<footer style="background: #f8f8f8; padding: 40px 20px; margin-top: 60px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h3 style="color: #6b46c1; font-size: 20px; margin-bottom: 10px;">양도마니</h3>
+            <p style="color: #666; font-size: 14px;">정가 티켓 양도 플랫폼</p>
+        </div>
+        
+        <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
+            <a href="/privacy" style="color: #6b46c1; text-decoration: none; font-size: 14px;">개인정보처리방침</a>
+            <a href="/terms" style="color: #6b46c1; text-decoration: none; font-size: 14px;">이용약관</a>
+            <a href="/support" style="color: #ff6b6b; text-decoration: none; font-size: 14px; font-weight: 600;">☕ 후원하기</a>
+        </div>
+        
+        <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+            <p style="color: #999; font-size: 13px; margin: 5px 0;">
+                문의: psunyong2@gmail.com
+            </p>
+            <p style="color: #ccc; font-size: 12px; margin-top: 10px;">
+                © 2025 양도마니. All rights reserved.
+            </p>
+        </div>
+    </div>
+</footer>
 </html>

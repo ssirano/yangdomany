@@ -37,6 +37,13 @@ def create_ticket():
     if not user:
         return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
     
+    # 정지된 사용자 체크 추가
+    if user.get('banned'):
+        return jsonify({
+            'success': False, 
+            'message': f"계정이 정지되었습니다. 사유: {user.get('ban_reason', '관리자 문의')}"
+        }), 403
+    
     data = request.json
     
     # 필수 필드 확인
