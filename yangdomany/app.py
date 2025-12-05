@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 load_dotenv() 
-from flask import Flask, render_template, jsonify, request, redirect, url_for, session
+from flask import Flask, render_template, jsonify, request, redirect, url_for, session, g
 
 from pymongo import MongoClient
 from datetime import datetime, timedelta
@@ -12,6 +12,7 @@ from ticket import ticket_bp
 from oauth import oauth_bp, oauth
 from admin import admin_bp
 import os
+import hashlib
 
 
 
@@ -188,6 +189,59 @@ def get_polaroids():
             item['created_at'] = item['created_at'].strftime('%Y-%m-%d')
     
     return jsonify(polaroids)
+
+@app.before_request
+def track_visitor():
+    """모든 요청마다 방문자 기록"""
+    
+    # static 파일, API 제외
+    if request.path.startswith('/static') or request.path.startswith('/api'):
+        return
+    
+    ip = request.remote_addr
+    user_agent = request.headers.get('User-Agent', '')
+    
+    # 익명 해시 (개인정보 보호)
+    visitor_hash = hashlib.md5(f"{ip}{user_agent}".encode()).hexdigest()
+    
+    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # 오늘 첫 방문인지 확인
+    existing = db.visitor_log.find_one({
+        'visitor_hash': visitor_hash,
+        'visited_at': {'$gte': today}
+    })
+    
+    if not existing:
+        # 신규 방문 기록
+        db.visitor_log.insert_one({
+            'visitor_hash': visitor_hash,
+            'ip': ip[:10],  # IP 일부만 저장 (개인정보 보호)
+            'user_id': g.get('user', {}).get('_id') if hasattr(g, 'user') else None,
+            'visited_at': datetime.now(),
+            'user_agent': user_agent,
+            'page': request.path
+        })
+        
+        # 일별 통계 업데이트
+        db.user_stats.update_one(
+            {'date': today},
+            {
+                '$inc': {'visitors': 1, 'page_views': 1},
+                '$setOnInsert': {
+                    'new_users': 0,
+                    'ticket_created': 0,
+                    'ticket_contact': 0
+                }
+            },
+            upsert=True
+        )
+    else:
+        # 페이지뷰만 증가
+        db.user_stats.update_one(
+            {'date': today},
+            {'$inc': {'page_views': 1}}
+        )
 
 if __name__ == '__main__':
 

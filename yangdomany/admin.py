@@ -4,7 +4,7 @@ from bson import ObjectId
 from datetime import datetime
 from functools import wraps
 import os
-
+from datetime import timedelta
 admin_bp = Blueprint('admin', __name__)
 
 client = MongoClient('mongodb+srv://psunyong2:V8Zh6sdvBfaAdUYv@yangdomany.8pjaosi.mongodb.net/')
@@ -140,4 +140,103 @@ def get_stats():
             'pending_tickets': pending_tickets,
             'approved_tickets': approved_tickets
         }
+    })
+
+@admin_bp.route('/api/admin/stats')
+@admin_required
+def get_stats():
+    """관리자 통계 데이터"""
+    
+    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # 오늘
+    today_stats = db.user_stats.find_one({'date': today}) or {}
+    
+    # 어제
+    yesterday = today - timedelta(days=1)
+    yesterday_stats = db.user_stats.find_one({'date': yesterday}) or {}
+    
+    # 이번 주 (7일)
+    week_ago = today - timedelta(days=7)
+    week_stats = list(db.user_stats.aggregate([
+        {'$match': {'date': {'$gte': week_ago}}},
+        {'$group': {
+            '_id': None,
+            'visitors': {'$sum': '$visitors'},
+            'new_users': {'$sum': '$new_users'},
+            'page_views': {'$sum': '$page_views'},
+            'ticket_created': {'$sum': '$ticket_created'},
+            'ticket_contact': {'$sum': '$ticket_contact'}
+        }}
+    ]))
+    
+    # 이번 달 (30일)
+    month_ago = today - timedelta(days=30)
+    month_stats = list(db.user_stats.aggregate([
+        {'$match': {'date': {'$gte': month_ago}}},
+        {'$group': {
+            '_id': None,
+            'visitors': {'$sum': '$visitors'},
+            'new_users': {'$sum': '$new_users'},
+            'page_views': {'$sum': '$page_views'},
+            'ticket_created': {'$sum': '$ticket_created'},
+            'ticket_contact': {'$sum': '$ticket_contact'}
+        }}
+    ]))
+    
+    # 3개월
+    three_months_ago = today - timedelta(days=90)
+    three_months_stats = list(db.user_stats.aggregate([
+        {'$match': {'date': {'$gte': three_months_ago}}},
+        {'$group': {
+            '_id': None,
+            'visitors': {'$sum': '$visitors'},
+            'new_users': {'$sum': '$new_users'},
+            'page_views': {'$sum': '$page_views'}
+        }}
+    ]))
+    
+    # 6개월
+    six_months_ago = today - timedelta(days=180)
+    six_months_stats = list(db.user_stats.aggregate([
+        {'$match': {'date': {'$gte': six_months_ago}}},
+        {'$group': {
+            '_id': None,
+            'visitors': {'$sum': '$visitors'},
+            'new_users': {'$sum': '$new_users'}
+        }}
+    ]))
+    
+    # 12개월
+    year_ago = today - timedelta(days=365)
+    year_stats = list(db.user_stats.aggregate([
+        {'$match': {'date': {'$gte': year_ago}}},
+        {'$group': {
+            '_id': None,
+            'visitors': {'$sum': '$visitors'},
+            'new_users': {'$sum': '$new_users'}
+        }}
+    ]))
+    
+    # 일별 추이 (최근 30일)
+    daily_trend = list(db.user_stats.find(
+        {'date': {'$gte': month_ago}},
+        {'date': 1, 'visitors': 1, 'page_views': 1, 'ticket_created': 1}
+    ).sort('date', 1))
+    
+    return jsonify({
+        'success': True,
+        'today': today_stats,
+        'yesterday': yesterday_stats,
+        'week': week_stats[0] if week_stats else {},
+        'month': month_stats[0] if month_stats else {},
+        'three_months': three_months_stats[0] if three_months_stats else {},
+        'six_months': six_months_stats[0] if six_months_stats else {},
+        'year': year_stats[0] if year_stats else {},
+        'daily_trend': [{
+            'date': d['date'].strftime('%Y-%m-%d'),
+            'visitors': d.get('visitors', 0),
+            'page_views': d.get('page_views', 0),
+            'ticket_created': d.get('ticket_created', 0)
+        } for d in daily_trend]
     })
