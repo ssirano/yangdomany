@@ -67,60 +67,80 @@
 
     <!-- 티켓 등록/수정 모달 -->
     <div id="ticketModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeTicketModal()">&times;</span>
-            <h3 id="modalTitle">티켓 등록</h3>
-            <form id="ticketForm">
+        <div class="modal-content modern-modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">티켓 등록</h3>
+                <span class="close" onclick="closeTicketModal()">&times;</span>
+            </div>
+            
+            <form id="ticketForm" class="modern-form">
                 <input type="hidden" id="ticketId">
                 
-                <div class="form-group">
-                    <label for="showSelect">공연 선택 *</label>
-                    <select id="showSelect" required>
+                <div class="form-section">
+                    <label class="form-label">공연 선택 *</label>
+                    <select id="showSelect" required onchange="handleShowChange()">
                         <option value="">공연을 선택하세요</option>
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label for="ticketDate">관람 날짜 *</label>
-                    <input type="date" id="ticketDate" required>
+    
+                <div class="form-row">
+                    <div class="form-section">
+                        <label class="form-label">관람 날짜 *</label>
+                        <input type="date" id="ticketDate" required>
+                    </div>
+    
+                    <div class="form-section">
+                        <label class="form-label">관람 시간 *</label>
+                        <input type="time" id="ticketTime" required>
+                    </div>
                 </div>
-
-                <div class="form-group">
-                    <label for="ticketTime">관람 시간 *</label>
-                    <input type="time" id="ticketTime" required>
+    
+                <div class="form-row">
+                    <div class="form-section">
+                        <label class="form-label">좌석 등급 *</label>
+                        <select id="seatGrade" required onchange="updatePrice()">
+                            <option value="">좌석을 선택하세요</option>
+                        </select>
+                    </div>
+    
+                    <div class="form-section">
+                        <label class="form-label">좌석 정보 *</label>
+                        <input type="text" id="ticketSeat" placeholder="예: 10열 5번" required>
+                    </div>
                 </div>
-
-                <div class="form-group">
-                    <label for="ticketSeat">좌석 정보 *</label>
-                    <input type="text" id="ticketSeat" placeholder="예: R석 10열 5번" required>
+    
+                <div class="form-section price-section">
+                    <label class="form-label">가격 (정가)</label>
+                    <div class="price-display">
+                        <input type="number" id="ticketPrice" placeholder="좌석 등급을 선택하면 자동 입력됩니다" required readonly>
+                        <span class="price-unit">원</span>
+                    </div>
+                    <p class="help-text">정가만 입력 가능합니다</p>
                 </div>
-
-                <div class="form-group">
-                    <label for="ticketPrice">가격 *</label>
-                    <input type="number" id="ticketPrice" placeholder="정가를 입력하세요" required>
-                    <span class="help-text">정가만 입력 가능합니다</span>
-                </div>
-
-                <div class="form-group">
-                    <label for="contactMethod">연락 방법 *</label>
+    
+                <div class="form-section">
+                    <label class="form-label">연락 방법 *</label>
                     <select id="contactMethod" required onchange="toggleContactInfo()">
-                        <option value="chat">채팅 (준비중)</option>
                         <option value="phone">전화번호 공개</option>
                         <option value="kakao">카카오톡 오픈채팅</option>
                     </select>
                 </div>
-
-                <div class="form-group" id="contactInfoGroup" style="display: none;">
-                    <label for="contactInfo">카카오톡 오픈채팅 링크</label>
+    
+                <div class="form-section" id="contactInfoGroup" style="display: none;">
+                    <label class="form-label">카카오톡 오픈채팅 링크</label>
                     <input type="text" id="contactInfo" placeholder="https://open.kakao.com/...">
                 </div>
-
+    
                 <div id="ticketError" class="error-message"></div>
-
-                <button type="submit" class="auth-btn">등록하기</button>
+    
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeTicketModal()">취소</button>
+                    <button type="submit" class="btn-submit">등록하기</button>
+                </div>
             </form>
         </div>
     </div>
+    
 
     <!-- 연락하기 모달 -->
     <div id="contactModal" class="modal">
@@ -137,6 +157,7 @@
         let currentCategory = 'all';
         let selectedShowId = null;
         let currentUser = null;
+        let currentShowPrices = {};
 
         async function checkLoginStatus() {
             try {
@@ -270,6 +291,84 @@
             // 검색 페이지로 이동
             window.location.href = `/search?q=${encodeURIComponent(name)}`;
         }
+        function handleShowChange() {
+            const showSelect = document.getElementById('showSelect');
+            const showId = showSelect.value;
+            const seatGradeSelect = document.getElementById('seatGrade');
+            const priceInput = document.getElementById('ticketPrice');
+            
+            // 초기화
+            seatGradeSelect.innerHTML = '<option value="">좌석을 선택하세요</option>';
+            priceInput.value = '';
+            currentShowPrices = {};
+            
+            if (!showId) return;
+            
+            // 선택한 공연의 가격 정보 가져오기
+            const selectedShow = allShows.find(s => s.id == showId);
+            
+            if (selectedShow && selectedShow.prices) {
+                currentShowPrices = selectedShow.prices;
+                
+                // 좌석 등급 옵션 추가
+                Object.keys(selectedShow.prices).forEach(seatType => {
+                    const option = document.createElement('option');
+                    option.value = seatType;
+                    option.textContent = `${seatType} - ${selectedShow.prices[seatType].toLocaleString()}원`;
+                    seatGradeSelect.appendChild(option);
+                });
+            } else {
+                // 가격 정보 없으면 수동 입력
+                priceInput.removeAttribute('readonly');
+                priceInput.placeholder = '가격을 직접 입력하세요';
+            }
+        }
+
+        // 좌석 등급 선택 시 가격 자동 입력
+        function updatePrice() {
+            const seatGrade = document.getElementById('seatGrade').value;
+            const priceInput = document.getElementById('ticketPrice');
+            
+            if (seatGrade && currentShowPrices[seatGrade]) {
+                priceInput.value = currentShowPrices[seatGrade];
+            } else {
+                priceInput.value = '';
+            }
+        }
+
+        function populateShowSelect() {
+            const select = document.getElementById('showSelect');
+            const options = allShows.map(show => {
+                const priceInfo = show.prices ? ` (${Object.keys(show.prices).length}개 좌석)` : '';
+                return `<option value="${show.id}" data-title="${show.title}">${show.title} - ${show.venue}${priceInfo}</option>`;
+            }).join('');
+            select.innerHTML = '<option value="">공연을 선택하세요</option>' + options;
+        }
+
+        function openCreateModal() {
+            if (!currentUser) {
+                alert('로그인이 필요합니다.');
+                window.location.href = '/login';
+                return;
+            }
+            
+            document.getElementById('modalTitle').textContent = '티켓 등록';
+            document.getElementById('ticketForm').reset();
+            document.getElementById('ticketId').value = '';
+            
+            // 가격 필드 초기화
+            const priceInput = document.getElementById('ticketPrice');
+            priceInput.setAttribute('readonly', 'readonly');
+            priceInput.placeholder = '좌석 등급을 선택하면 자동 입력됩니다';
+            
+            document.getElementById('ticketModal').style.display = 'flex';
+        }
+
+        function closeTicketModal() {
+            document.getElementById('ticketModal').style.display = 'none';
+            document.getElementById('ticketError').textContent = '';
+            currentShowPrices = {};
+        }
 
         document.getElementById('ticketForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -277,19 +376,25 @@
             const ticketId = document.getElementById('ticketId').value;
             const showSelect = document.getElementById('showSelect');
             const selectedOption = showSelect.options[showSelect.selectedIndex];
+            const seatGrade = document.getElementById('seatGrade').value;
+            const seatDetail = document.getElementById('ticketSeat').value;
+            
+            // 좌석 정보 조합
+            const fullSeat = seatGrade ? `${seatGrade} ${seatDetail}` : seatDetail;
             
             const data = {
                 show_id: showSelect.value,
                 show_title: selectedOption.dataset.title,
                 date: document.getElementById('ticketDate').value,
                 time: document.getElementById('ticketTime').value,
-                seat: document.getElementById('ticketSeat').value,
+                seat: fullSeat,
                 price: document.getElementById('ticketPrice').value,
                 contact_method: document.getElementById('contactMethod').value,
                 contact_info: document.getElementById('contactInfo').value
             };
             
             try {
+                showLoading();
                 const url = ticketId ? `/api/update-ticket/${ticketId}` : '/api/create-ticket';
                 const method = ticketId ? 'PUT' : 'POST';
                 
@@ -311,6 +416,8 @@
             } catch (error) {
                 console.error('등록/수정 오류:', error);
                 document.getElementById('ticketError').textContent = '오류가 발생했습니다.';
+            } finally {
+                hideLoading();
             }
         });
 

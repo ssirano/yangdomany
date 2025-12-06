@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>공연 양도</title>
+    <title>양도마니 - 정가 티켓 양도 플랫폼</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <header>
         <div class="container">
-            <h1><a href="/">공연 양도</a></h1>
+            <h1><a href="/">양도마니</a></h1>
             <div class="header-right">
                 <div class="search-box">
                     <input type="text" id="searchInput" placeholder="배우/작품명 검색">
@@ -26,43 +26,119 @@
         <div class="container">
             <a href="/">메인</a>
             <a href="/transfer">양도하기</a>
-            <!-- <a href="/polaroid">폴라로이드</a> -->
             <a href="/mypage">마이페이지</a>
             <a href="/admin" id="adminMenu" style="display: none; color: #ff6b6b; font-weight: 600;">관리자</a>
-
         </div>
     </nav>
 
     <main class="container">
-        <section class="popular-section">
-            <h2>이달의 인기 공연</h2>
-            <div class="show-grid">
-                {% for show in shows %}
-                <div class="show-card">
-                    <img src="{{ show.poster }}" alt="{{ show.title }}">
-                    <div class="show-info">
-                        <span class="category">{{ show.category }}</span>
+        <!-- 박스오피스 TOP 10 (자동 전환) -->
+        {% if boxoffice_plays or boxoffice_musicals %}
+        <section class="boxoffice-section">
+            <div class="section-header">
+                <h2>
+                    🏆 이달의 박스오피스 TOP 10
+                    <span class="category-indicator" id="categoryIndicator">연극</span>
+                </h2>
+                <div class="header-right-info">
+                    {% if update_date %}
+                    <p class="update-info">{{ update_date.strftime('%Y.%m.%d') }} 기준</p>
+                    {% endif %}
+                    <div class="auto-switch-indicator">
+                        <span class="switch-dot"></span>
+                        <span class="switch-text">10초마다 자동 전환</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 연극 TOP 10 -->
+            <div class="boxoffice-grid" id="playsGrid" style="display: grid;">
+                {% for show in boxoffice_plays %}
+                <div class="boxoffice-card" onclick="searchShow('{{ show.title }}')">
+                    <div class="rank-badge rank-{{ show.boxoffice_rank }}">
+                        {{ show.boxoffice_rank }}
+                    </div>
+                    
+                    <div class="poster-wrapper">
+                        {% if show.poster %}
+                            <img src="{{ show.poster }}" alt="{{ show.title }}" onerror="this.parentElement.innerHTML='<div class=\'poster-placeholder\'><span>{{ show.title[0] }}</span></div>'">
+                        {% else %}
+                            <div class="poster-placeholder">
+                                <span>{{ show.title[0] }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="boxoffice-info">
+                        <span class="category-badge 연극">연극</span>
                         <h3>{{ show.title }}</h3>
-                        <p>{{ show.venue }}</p>
-                        {% if show.actors %}
-                        <div class="actor-tags">
-                            {% for actor in show.actors[:3] %}
-                            <span class="actor-tag">{{ actor }}</span>
-                            {% endfor %}
-                        </div>
+                        <p class="venue">{{ show.venue }}</p>
+                        
+                        {% if show.prices %}
+                            {% set price_list = show.prices.values() | list %}
+                            {% if price_list %}
+                                <div class="price-info">
+                                    <span class="price-tag">{{ (price_list | min) | format_number }}원~</span>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- 뮤지컬 TOP 10 -->
+            <div class="boxoffice-grid" id="musicalsGrid" style="display: none;">
+                {% for show in boxoffice_musicals %}
+                <div class="boxoffice-card" onclick="searchShow('{{ show.title }}')">
+                    <div class="rank-badge rank-{{ show.boxoffice_rank }}">
+                        {{ show.boxoffice_rank }}
+                    </div>
+                    
+                    <div class="poster-wrapper">
+                        {% if show.poster %}
+                            <img src="{{ show.poster }}" alt="{{ show.title }}" onerror="this.parentElement.innerHTML='<div class=\'poster-placeholder\'><span>{{ show.title[0] }}</span></div>'">
+                        {% else %}
+                            <div class="poster-placeholder">
+                                <span>{{ show.title[0] }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="boxoffice-info">
+                        <span class="category-badge 뮤지컬">뮤지컬</span>
+                        <h3>{{ show.title }}</h3>
+                        <p class="venue">{{ show.venue }}</p>
+                        
+                        {% if show.prices %}
+                            {% set price_list = show.prices.values() | list %}
+                            {% if price_list %}
+                                <div class="price-info">
+                                    <span class="price-tag">{{ (price_list | min) | format_number }}원~</span>
+                                </div>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>
                 {% endfor %}
             </div>
         </section>
+        {% endif %}
 
+        <!-- 인기 검색 배우 -->
+        {% if actors %}
         <section class="actors-section">
             <h2>인기 검색 배우</h2>
             <div class="actor-grid">
                 {% for actor in actors %}
                 <div class="actor-card" onclick="searchActor('{{ actor.name }}')">
-                    <img src="{{ actor.image }}" alt="{{ actor.name }}">
+                    {% if actor.image and actor.image.startswith('http') %}
+                        <img src="{{ actor.image }}" alt="{{ actor.name }}" onerror="this.parentElement.innerHTML='<div class=\'actor-placeholder\'><span>{{ actor.name[0] }}</span></div>'">
+                    {% else %}
+                        <div class="actor-placeholder">
+                            <span>{{ actor.name[0] }}</span>
+                        </div>
+                    {% endif %}
                     <div class="actor-info">
                         <span class="actor-name">{{ actor.name }}</span>
                         <span class="search-count">{{ actor.count }}회</span>
@@ -71,9 +147,79 @@
                 {% endfor %}
             </div>
         </section>
+        {% endif %}
     </main>
 
+    <footer style="background: #f8f8f8; padding: 40px 20px; margin-top: 60px;">
+        <div class="container" style="max-width: 1200px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h3 style="color: #6b46c1; font-size: 20px; margin-bottom: 10px;">양도마니</h3>
+                <p style="color: #666; font-size: 14px;">정가 티켓 양도 플랫폼</p>
+            </div>
+            
+            <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
+                <a href="/privacy" style="color: #6b46c1; text-decoration: none; font-size: 14px;">개인정보처리방침</a>
+                <a href="/terms" style="color: #6b46c1; text-decoration: none; font-size: 14px;">이용약관</a>
+                <a href="/support" style="color: #ff6b6b; text-decoration: none; font-size: 14px; font-weight: 600;">☕ 후원하기</a>
+            </div>
+            
+            <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                <p style="color: #999; font-size: 13px; margin: 5px 0;">
+                    문의: psunyong2@gmail.com
+                </p>
+                <p style="color: #ccc; font-size: 12px; margin-top: 10px;">
+                    © 2025 양도마니. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
     <script>
+        // 박스오피스 자동 전환
+        let currentCategory = 'plays';
+        let switchInterval;
+
+        function switchBoxoffice() {
+            const playsGrid = document.getElementById('playsGrid');
+            const musicalsGrid = document.getElementById('musicalsGrid');
+            const indicator = document.getElementById('categoryIndicator');
+            
+            if (currentCategory === 'plays') {
+                // 연극 → 뮤지컬
+                playsGrid.style.display = 'none';
+                musicalsGrid.style.display = 'grid';
+                indicator.textContent = '뮤지컬';
+                indicator.style.background = 'linear-gradient(135deg, #ff6b6b, #ee5a6f)';
+                currentCategory = 'musicals';
+            } else {
+                // 뮤지컬 → 연극
+                musicalsGrid.style.display = 'none';
+                playsGrid.style.display = 'grid';
+                indicator.textContent = '연극';
+                indicator.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+                currentCategory = 'plays';
+            }
+        }
+
+        // 10초마다 자동 전환
+        function startAutoSwitch() {
+            switchInterval = setInterval(switchBoxoffice, 10000);
+        }
+
+        // 페이지 로드 시 시작
+        document.addEventListener('DOMContentLoaded', function() {
+            startAutoSwitch();
+        });
+
+        // 탭을 떠날 때 멈추고, 돌아오면 재시작
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                clearInterval(switchInterval);
+            } else {
+                startAutoSwitch();
+            }
+        });
+
         async function checkLoginStatus() {
             try {
                 const response = await fetch('/api/me');
@@ -86,14 +232,11 @@
                 
                 const authButtons = document.querySelector('.auth-buttons');
                 if (data.success && data.user) {
-                    // transfer.html에만: currentUser = data.user;
-                    
                     authButtons.innerHTML = `
                         <span class="user-nickname">${data.user.nickname}님</span>
                         <button onclick="handleLogout()" class="logout-btn">로그아웃</button>
                     `;
                     
-                    // 관리자 여부 확인
                     checkAdminMenu();
                 }
             } catch (error) {
@@ -101,7 +244,6 @@
             }
         }
 
-        // 관리자 메뉴 확인
         async function checkAdminMenu() {
             try {
                 const response = await fetch('/api/is-admin');
@@ -117,8 +259,6 @@
                 console.error('관리자 확인 오류:', error);
             }
         }
-
-
 
         async function handleLogout() {
             try {
@@ -140,15 +280,16 @@
                 window.location.href = `/search?q=${encodeURIComponent(query)}`;
             }
         }
-        
+
+        function searchShow(title) {
+            window.location.href = `/search?q=${encodeURIComponent(title)}`;
+        }
 
         function searchActor(name) {
-            // 배우 검색 카운트 증가 (백그라운드)
             fetch(`/api/actor-search/${encodeURIComponent(name)}`, { 
                 method: 'POST' 
             }).catch(err => console.log('Count update failed:', err));
             
-            // 검색 페이지로 이동
             window.location.href = `/search?q=${encodeURIComponent(name)}`;
         }
 
@@ -166,27 +307,4 @@
         });
     </script>
 </body>
-<footer style="background: #f8f8f8; padding: 40px 20px; margin-top: 60px;">
-    <div class="container" style="max-width: 1200px; margin: 0 auto;">
-        <div style="text-align: center; margin-bottom: 20px;">
-            <h3 style="color: #6b46c1; font-size: 20px; margin-bottom: 10px;">양도마니</h3>
-            <p style="color: #666; font-size: 14px;">정가 티켓 양도 플랫폼</p>
-        </div>
-        
-        <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
-            <a href="/privacy" style="color: #6b46c1; text-decoration: none; font-size: 14px;">개인정보처리방침</a>
-            <a href="/terms" style="color: #6b46c1; text-decoration: none; font-size: 14px;">이용약관</a>
-            <a href="/support" style="color: #ff6b6b; text-decoration: none; font-size: 14px; font-weight: 600;">☕ 후원하기</a>
-        </div>
-        
-        <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e0e0e0;">
-            <p style="color: #999; font-size: 13px; margin: 5px 0;">
-                문의: psunyong2@gmail.com
-            </p>
-            <p style="color: #ccc; font-size: 12px; margin-top: 10px;">
-                © 2025 양도마니. All rights reserved.
-            </p>
-        </div>
-    </div>
-</footer>
 </html>

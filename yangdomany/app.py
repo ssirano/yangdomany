@@ -34,7 +34,13 @@ app.register_blueprint(admin_bp)
 # MongoDB 연결
 client = MongoClient('mongodb+srv://psunyong2:V8Zh6sdvBfaAdUYv@yangdomany.8pjaosi.mongodb.net/')
 db = client['yangdomany']
-
+@app.template_filter('format_number')
+def format_number_filter(value):
+    """숫자를 천 단위 콤마로 포맷"""
+    try:
+        return f"{int(value):,}"
+    except:
+        return value
 
 @app.after_request
 def set_security_headers(response):
@@ -45,25 +51,49 @@ def set_security_headers(response):
 
 @app.route('/')
 def main():
-    shows = list(db.shows.find().sort('popularity', -1).limit(6))
-    actors = list(db.actors.find().sort('count', -1))
+    # 연극 TOP 10 (status 조건 제거)
+    boxoffice_plays = list(db.shows.find(
+        {
+            'boxoffice_category': '연극',
+            'boxoffice_rank': {'$exists': True, '$gte': 1, '$lte': 10}
+        }
+    ).sort('boxoffice_rank', 1))
     
-    for show in shows:
+    # 뮤지컬 TOP 10 (status 조건 제거)
+    boxoffice_musicals = list(db.shows.find(
+        {
+            'boxoffice_category': '뮤지컬',
+            'boxoffice_rank': {'$exists': True, '$gte': 1, '$lte': 10}
+        }
+    ).sort('boxoffice_rank', 1))
+    
+    # 인기 배우
+    actors = list(db.actors.find().sort('count', -1).limit(10))
+    
+    # ObjectId 처리
+    for show in boxoffice_plays + boxoffice_musicals:
         if '_id' in show:
-            show['id'] = show['_id']
+            show['id'] = show.get('id', show['_id'])
             del show['_id']
     
     for actor in actors:
         if '_id' in actor:
             del actor['_id']
     
-    # 세션 정보 전달
+    # 업데이트 날짜
+    update_date = None
+    if boxoffice_plays and boxoffice_plays[0].get('boxoffice_updated_at'):
+        update_date = boxoffice_plays[0]['boxoffice_updated_at']
+    elif boxoffice_musicals and boxoffice_musicals[0].get('boxoffice_updated_at'):
+        update_date = boxoffice_musicals[0]['boxoffice_updated_at']
+    
     return render_template('main.html', 
-                         shows=shows, 
+                         boxoffice_plays=boxoffice_plays,
+                         boxoffice_musicals=boxoffice_musicals,
+                         update_date=update_date,
                          actors=actors,
                          logged_in=session.get('logged_in', False),
                          nickname=session.get('nickname', ''))
-
 @app.route('/transfer')
 def transfer():
     return render_template('transfer.html')
@@ -102,11 +132,11 @@ def get_shows():
     
     shows = list(db.shows.find(query))
     
-    # ObjectId를 문자열로 변환
     for show in shows:
         if '_id' in show:
-            show['id'] = show['_id']
+            show['id'] = show.get('id', show['_id'])
             del show['_id']
+        # prices는 그대로 포함
     
     return jsonify(shows)
 
@@ -202,6 +232,8 @@ def get_polaroids():
             item['created_at'] = item['created_at'].strftime('%Y-%m-%d')
     
     return jsonify(polaroids)
+
+
 
 @app.before_request
 def track_visitor():

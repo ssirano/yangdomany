@@ -2,8 +2,9 @@ name: KOPIS Daily Sync
 
 on:
   schedule:
+    # 매일 새벽 2시 (UTC 17시 = KST 02시)
     - cron: '0 17 * * *'
-  workflow_dispatch:
+  workflow_dispatch:  # 수동 실행
 
 jobs:
   sync:
@@ -20,13 +21,20 @@ jobs:
       
       - name: Install dependencies
         run: |
-          cd yangdomany
           pip install pymongo requests python-dotenv
       
-      - name: Run KOPIS Sync
+      - name: Run KOPIS Shows Sync
         env:
           KOPIS_API_KEY: ${{ secrets.KOPIS_API_KEY }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
         run: |
           cd yangdomany
           python kopis_sync.py
+      
+      - name: Run Boxoffice Sync
+        env:
+          KOPIS_API_KEY: ${{ secrets.KOPIS_API_KEY }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        run: |
+          cd yangdomany
+          python boxoffice_sync.py
