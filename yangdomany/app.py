@@ -167,6 +167,19 @@ def get_current_user():
         return jsonify({'success': True, 'user': user})
     
     return jsonify({'success': False}), 401
+
+@app.route('/api/actor-search/<actor_name>', methods=['POST'])
+def increment_actor_search(actor_name):
+    """배우 검색 카운트 증가"""
+    result = db.actors.update_one(
+        {'name': actor_name},
+        {'$inc': {'count': 1}}
+    )
+    
+    return jsonify({
+        'success': True,
+        'matched': result.matched_count > 0
+    })
 @app.route('/api/polaroids')
 def get_polaroids():
     trade_type = request.args.get('type', '')

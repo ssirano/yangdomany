@@ -187,6 +187,12 @@
         }
 
         function searchActor(name) {
+            // 배우 검색 카운트 증가 (백그라운드)
+            fetch(`/api/actor-search/${encodeURIComponent(name)}`, { 
+                method: 'POST' 
+            }).catch(err => console.log('Count update failed:', err));
+            
+            // 검색 페이지로 이동
             window.location.href = `/search?q=${encodeURIComponent(name)}`;
         }
 

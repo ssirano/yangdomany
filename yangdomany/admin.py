@@ -124,23 +124,7 @@ def unban_user(user_id):
     )
     return jsonify({'success': True, 'message': '정지가 해제되었습니다.'})
 
-@admin_bp.route('/api/admin/stats')
-@admin_required
-def get_stats():
-    total_users = db.users.count_documents({})
-    total_tickets = db.tickets.count_documents({})
-    pending_tickets = db.tickets.count_documents({'status': 'pending'})
-    approved_tickets = db.tickets.count_documents({'status': 'approved'})
-    
-    return jsonify({
-        'success': True,
-        'stats': {
-            'total_users': total_users,
-            'total_tickets': total_tickets,
-            'pending_tickets': pending_tickets,
-            'approved_tickets': approved_tickets
-        }
-    })
+
 
 @admin_bp.route('/api/admin/stats')
 @admin_required
